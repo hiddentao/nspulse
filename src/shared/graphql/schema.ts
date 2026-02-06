@@ -74,6 +74,13 @@ export const typeDefs = gql`
     perPage: Int!
   }
 
+  type EventStats {
+    monthlyData: JSON!
+    categoryTotals: JSON!
+    totalEvents: Int!
+    lastUpdated: DateTime
+  }
+
   type Query {
     # Token validation (requires auth header, but validates it)
     validateToken: ValidateTokenResult!
@@ -82,6 +89,9 @@ export const typeDefs = gql`
     me: UserProfile! @auth
     getMyNotifications(pageParam: PageParam!): NotificationsResponse! @auth
     getMyUnreadNotificationsCount: Int! @auth
+
+    # Public queries
+    getEventStats: EventStats!
   }
 
   type Mutation {

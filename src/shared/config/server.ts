@@ -50,6 +50,9 @@ export interface ServerConfig extends ClientConfig {
   SENTRY_WORKER_DSN?: string
   SENTRY_TRACES_SAMPLE_RATE: number
   SENTRY_PROFILE_SESSION_SAMPLE_RATE: number
+
+  // AI services
+  ANTHROPIC_API_KEY: string
 }
 
 // Load and validate server configuration
@@ -131,6 +134,9 @@ export const serverConfig: ServerConfig = {
     .get("SENTRY_PROFILE_SESSION_SAMPLE_RATE")
     .default("1.0")
     .asFloat(),
+
+  // AI services
+  ANTHROPIC_API_KEY: env.get("ANTHROPIC_API_KEY").required().asString(),
 }
 
 // Helper to check if a config value is empty

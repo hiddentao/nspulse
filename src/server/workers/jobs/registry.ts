@@ -1,10 +1,11 @@
 import { removeOldWorkerJobsJob } from "./removeOldWorkerJobs"
+import { syncLumaEventsJob } from "./syncLumaEvents"
 import type { JobRegistry } from "./types"
 
-// Job registry containing all available jobs
 export const jobRegistry: JobRegistry = {
   removeOldWorkerJobs: removeOldWorkerJobsJob,
+  syncLumaEvents: syncLumaEventsJob,
 }
 
-// Export individual job objects
 export { removeOldWorkerJobsJob } from "./removeOldWorkerJobs"
+export { syncLumaEventsJob } from "./syncLumaEvents"

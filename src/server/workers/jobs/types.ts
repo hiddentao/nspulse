@@ -19,22 +19,30 @@ export interface RemoveOldWorkerJobsData {
   // No specific data needed for this job
 }
 
+export interface SyncLumaEventsData {
+  // No specific data needed for this job
+}
+
 // Discriminated union for job types
-export type JobType = "removeOldWorkerJobs"
+export type JobType = "removeOldWorkerJobs" | "syncLumaEvents"
 
 // Type-safe job configurations
 export type JobConfig<T extends JobType> = T extends "removeOldWorkerJobs"
   ? { type: T; data?: RemoveOldWorkerJobsData }
-  : never
+  : T extends "syncLumaEvents"
+    ? { type: T; data?: SyncLumaEventsData }
+    : never
 
 // Helper type to extract job data type from job type
 export type JobDataType<T extends JobType> = T extends "removeOldWorkerJobs"
   ? RemoveOldWorkerJobsData
-  : never
+  : T extends "syncLumaEvents"
+    ? SyncLumaEventsData
+    : never
 
 // Type guard for job types
 export const isValidJobType = (type: string): type is JobType => {
-  return type === "removeOldWorkerJobs"
+  return type === "removeOldWorkerJobs" || type === "syncLumaEvents"
 }
 
 // Job registry type

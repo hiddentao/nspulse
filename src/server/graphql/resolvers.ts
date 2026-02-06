@@ -9,6 +9,7 @@ import {
   type OAuthProvider,
 } from "../auth/oauth"
 import { encryptOAuthState } from "../auth/oauth-state"
+import { getEventStats } from "../db/events"
 import {
   getNotificationsForUser,
   getUnreadNotificationsCountForUser,
@@ -187,11 +188,42 @@ export function createResolvers(serverApp: ServerApp): Resolvers {
               return count
             } catch (error) {
               logger.error("Failed to get unread notifications count:", error)
-              // For count queries, return 0 on error rather than throwing
               return 0
             }
           },
         )
+      },
+
+      getEventStats: async (_, __, context) => {
+        return withSpan("graphql.Query.getEventStats", context, async () => {
+          try {
+            const stats = await getEventStats(serverApp.db)
+
+            if (!stats) {
+              return {
+                monthlyData: [],
+                categoryTotals: [],
+                totalEvents: 0,
+                lastUpdated: null,
+              }
+            }
+
+            return {
+              monthlyData: stats.monthlyData,
+              categoryTotals: stats.categoryTotals,
+              totalEvents: stats.totalEvents,
+              lastUpdated: stats.lastUpdated,
+            }
+          } catch (error) {
+            logger.error("Failed to get event stats:", error)
+            return {
+              monthlyData: [],
+              categoryTotals: [],
+              totalEvents: 0,
+              lastUpdated: null,
+            }
+          }
+        })
       },
     },
 

@@ -60,3 +60,12 @@ export const EMAIL_VERIFICATION_RESULT_FIELDS = gql`
     error
   }
 `
+
+export const EVENT_STATS_FIELDS = gql`
+  fragment EventStatsFields on EventStats {
+    monthlyData
+    categoryTotals
+    totalEvents
+    lastUpdated
+  }
+`

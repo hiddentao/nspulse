@@ -9,6 +9,7 @@ import {
   rescheduleCronJob,
   rescheduleFailedJob,
   scheduleCronJob,
+  scheduleJob,
 } from "../db/worker"
 import type { ServerApp } from "../types"
 import { WorkerIPCMessageType } from "./ipc-types"
@@ -33,6 +34,28 @@ const setupDefaultJobs = async (serverApp: ServerApp) => {
       autoRescheduleOnFailureDelay: ONE_MINUTE,
     },
     "0 0 * * * *",
+  )
+
+  // Sync Luma events on startup
+  await scheduleJob(serverApp, {
+    tag: "initial:syncLumaEvents",
+    type: "syncLumaEvents",
+    userId: 0,
+    data: {},
+  })
+
+  // Sync Luma events daily at 2 AM UTC
+  await scheduleCronJob(
+    serverApp,
+    {
+      tag: "cron:syncLumaEvents",
+      type: "syncLumaEvents",
+      userId: 0,
+      data: {},
+      autoRescheduleOnFailure: true,
+      autoRescheduleOnFailureDelay: ONE_MINUTE,
+    },
+    "0 0 2 * * *",
   )
 
   logger.debug("Default jobs scheduled")
@@ -128,8 +151,8 @@ export const runWorker = async (serverApp: ServerApp) => {
                 )
               }
             } catch (err: any) {
-              jobLogger.debug("Job execution failed:", err.message)
-              jobLogger.debug("Full error details:", err)
+              jobLogger.error("Job execution failed:", err.message)
+              jobLogger.error("Full error details:", err)
 
               await markJobAsFailed(serverApp, job.id, { error: err.message })
 

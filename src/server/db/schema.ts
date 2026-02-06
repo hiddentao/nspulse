@@ -7,6 +7,7 @@ import {
   serial,
   text,
   timestamp,
+  uniqueIndex,
 } from "drizzle-orm/pg-core"
 
 // Settings table for application configuration
@@ -107,6 +108,31 @@ export const workerJobs = pgTable("worker_jobs", {
     .notNull(),
 })
 
+// Events table for Luma community events
+export const events = pgTable(
+  "events",
+  {
+    id: serial("id").primaryKey(),
+    lumaId: text("luma_id").unique(),
+    title: text("title").notNull(),
+    startTime: timestamp("start_time", { withTimezone: true }).notNull(),
+    categories: json("categories").$type<string[]>().notNull().default([]),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+  },
+  (table) => ({
+    startTimeIdx: index("events_start_time_idx").on(table.startTime),
+    titleStartTimeIdx: uniqueIndex("events_title_start_time_idx").on(
+      table.title,
+      table.startTime,
+    ),
+  }),
+)
+
 // Export types for use in application
 export type Setting = typeof settings.$inferSelect
 export type NewSetting = typeof settings.$inferInsert
@@ -122,3 +148,6 @@ export type NewNotification = typeof notifications.$inferInsert
 
 export type WorkerJob = typeof workerJobs.$inferSelect
 export type NewWorkerJob = typeof workerJobs.$inferInsert
+
+export type Event = typeof events.$inferSelect
+export type NewEvent = typeof events.$inferInsert

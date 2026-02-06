@@ -34,5 +34,6 @@
       "@tests/*": ["./tests/*"]
     }
   },
-  "include": ["src/**/*", "tests/**/*", "scripts/**/*", "*.ts", "*.js"]
+  "include": ["src/**/*", "tests/**/*", "scripts/**/*", "*.ts", "*.js"],
+  "exclude": ["sample-frontend.ts"]
 }

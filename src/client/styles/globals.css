@@ -1,5 +1,5 @@
 /* Import Google Fonts first (before Tailwind) */
-@import url("https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap");
 
 /* Import Tailwind CSS v4 */
 @import "tailwindcss";
@@ -40,8 +40,8 @@
   --line-height-xl: 32px;
 
   /* Custom fonts */
-  --font-heading: "Poppins", system-ui, -apple-system, sans-serif;
-  --font-body: "Poppins", system-ui, -apple-system, sans-serif;
+  --font-heading: "DM Sans", -apple-system, sans-serif;
+  --font-body: "DM Sans", -apple-system, sans-serif;
 
   /* Layout - v2 header */
   --header-height: 56px;
@@ -49,6 +49,19 @@
   /* Transition properties */
   --transition-props:
     height, width, opacity, background-color, color, border-color;
+
+  /* NSPulse brand colors */
+  --color-nspulse-bg: #0d0e10;
+  --color-nspulse-accent: #e8590c;
+  --color-nspulse-text: #c1c2c5;
+  --color-nspulse-heading: #f1f3f5;
+  --color-nspulse-muted: #5c5f66;
+  --color-nspulse-subtle: #495057;
+  --color-nspulse-card-bg: rgba(255, 255, 255, 0.03);
+  --color-nspulse-card-border: rgba(255, 255, 255, 0.06);
+
+  /* Monospace font */
+  --font-mono: "Space Mono", monospace;
 }
 
 /* Base layer styles - v2 styling */
