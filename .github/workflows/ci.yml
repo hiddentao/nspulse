@@ -40,8 +40,6 @@ jobs:
         with:
           bun-version: latest
       - run: bun install
-      - name: Install Playwright Browsers
-        run: bunx playwright install --with-deps chromium
       - name: Create test database
         run: |
           PGPASSWORD='' psql -h localhost -p 55433 -U postgres -c "CREATE DATABASE quickdapp_test;"
