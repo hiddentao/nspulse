@@ -79,6 +79,7 @@ export const typeDefs = gql`
     categoryTotals: JSON!
     totalEvents: Int!
     lastUpdated: DateTime
+    dailyData: JSON!
   }
 
   type Query {

@@ -73,19 +73,19 @@ export const EVENT_CATEGORY_ICONS: Record<EventCategory, string> = {
 }
 
 export const EVENT_CATEGORY_COLORS: Record<EventCategory, string> = {
-  "Education & Learning": "#E8590C",
-  "Fitness & Sports": "#2B8A3E",
-  "Health & Wellness": "#5C7CFA",
-  "Social & Community": "#F76707",
-  "Business & Startups": "#AE3EC9",
-  "AI & Data": "#0CA678",
-  "Tech & Engineering": "#1971C2",
-  "Creative & Arts": "#E64980",
-  "Outdoor & Adventure": "#74B816",
-  "Governance & Policy": "#495057",
-  "Conference & Summit": "#F59F00",
-  "Food & Dining": "#D6336C",
-  Other: "#868E96",
+  "Education & Learning": "#3b82f6",
+  "Fitness & Sports": "#ef4444",
+  "Health & Wellness": "#22c55e",
+  "Social & Community": "#ec4899",
+  "Business & Startups": "#f97316",
+  "AI & Data": "#8b5cf6",
+  "Tech & Engineering": "#6366f1",
+  "Creative & Arts": "#d946ef",
+  "Outdoor & Adventure": "#84cc16",
+  "Governance & Policy": "#eab308",
+  "Conference & Summit": "#10b981",
+  "Food & Dining": "#f43f5e",
+  Other: "#6b7280",
 }
 
 export const LUMA_CALENDAR_API_ID = "cal-4dWxlBFjW9Cd6ou"

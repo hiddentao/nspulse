@@ -3,14 +3,14 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>QuickDapp</title>
+  <title>NS Pulse</title>
   <script>
     (function() {
       var stored = localStorage.getItem('theme');
       var prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-      var theme = stored === 'light' ? 'light' :
-                  stored === 'dark' ? 'dark' :
-                  (prefersDark ? 'dark' : 'light');
+      var theme = stored === 'dark' ? 'dark' :
+                  stored === 'system' ? (prefersDark ? 'dark' : 'light') :
+                  'light';
       document.documentElement.classList.add(theme);
     })();
   </script>

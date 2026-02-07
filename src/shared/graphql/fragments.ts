@@ -67,5 +67,6 @@ export const EVENT_STATS_FIELDS = gql`
     categoryTotals
     totalEvents
     lastUpdated
+    dailyData
   }
 `

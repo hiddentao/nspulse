@@ -1,7 +1,7 @@
 {
-  "name": "@quickdapp/base",
+  "name": "@hiddentao/nspulse-site",
   "version": "3.11.3",
-  "description": "Production-ready boilerplate for web apps.",
+  "description": "nspulse website.",
   "author": "Ramesh Nair <ram@hiddentao.com>",
   "license": "MIT",
   "type": "module",
@@ -14,7 +14,7 @@
   "engineStrict": true,
   "repository": {
     "type": "git",
-    "url": "https://github.com/QuickDapp/QuickDapp.git"
+    "url": "https://github.com/hiddentao/nspulse.git"
   },
   "scripts": {
     "dev": "bun run scripts/dev.ts",

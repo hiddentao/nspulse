@@ -205,6 +205,7 @@ export function createResolvers(serverApp: ServerApp): Resolvers {
                 categoryTotals: [],
                 totalEvents: 0,
                 lastUpdated: null,
+                dailyData: [],
               }
             }
 
@@ -213,6 +214,7 @@ export function createResolvers(serverApp: ServerApp): Resolvers {
               categoryTotals: stats.categoryTotals,
               totalEvents: stats.totalEvents,
               lastUpdated: stats.lastUpdated,
+              dailyData: stats.dailyData || [],
             }
           } catch (error) {
             logger.error("Failed to get event stats:", error)
@@ -221,6 +223,7 @@ export function createResolvers(serverApp: ServerApp): Resolvers {
               categoryTotals: [],
               totalEvents: 0,
               lastUpdated: null,
+              dailyData: [],
             }
           }
         })

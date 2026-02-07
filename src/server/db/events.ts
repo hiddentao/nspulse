@@ -47,6 +47,7 @@ export interface EventStatsData {
   categoryTotals: [string, number][]
   totalEvents: number
   lastUpdated: string
+  dailyData: { date: string; total: number }[]
 }
 
 export async function computeAndSaveEventStats(
@@ -55,6 +56,7 @@ export async function computeAndSaveEventStats(
   const allEvents = await getAllEvents(db)
 
   const monthlyMap = new Map<string, Record<string, number>>()
+  const dailyMap = new Map<string, number>()
   const categoryCountMap = new Map<string, number>()
 
   for (const cat of EVENT_CATEGORIES) {
@@ -63,6 +65,8 @@ export async function computeAndSaveEventStats(
 
   for (const event of allEvents) {
     const month = event.startTime.toISOString().slice(0, 7)
+    const day = event.startTime.toISOString().slice(0, 10)
+    dailyMap.set(day, (dailyMap.get(day) || 0) + 1)
 
     if (!monthlyMap.has(month)) {
       const entry: Record<string, number> = { total: 0 }
@@ -92,11 +96,16 @@ export async function computeAndSaveEventStats(
     (a, b) => b[1] - a[1],
   ) as [string, number][]
 
+  const dailyData = Array.from(dailyMap.entries())
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([date, total]) => ({ date, total }))
+
   const stats: EventStatsData = {
     monthlyData,
     categoryTotals,
     totalEvents: allEvents.length,
     lastUpdated: new Date().toISOString(),
+    dailyData,
   }
 
   await setSetting(db, SETTINGS_KEYS.EVENT_STATS_CACHE, JSON.stringify(stats))
