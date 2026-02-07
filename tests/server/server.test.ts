@@ -111,7 +111,7 @@ describe("Server Integration Tests", () => {
       expect(data.status).toBe("ok")
       expect(data.timestamp).toBeDefined()
       expect(data.version).toBeDefined()
-      expect(data.name).toBe("QuickDapp")
+      expect(data.name).toBe("NSPulse")
       expect(data.environment).toBeDefined()
     })
 
