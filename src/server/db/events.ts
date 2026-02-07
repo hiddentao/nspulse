@@ -79,12 +79,10 @@ export async function computeAndSaveEventStats(
     const monthEntry = monthlyMap.get(month)!
     monthEntry["total"] = (monthEntry["total"] || 0) + 1
 
-    const cats = (event.categories as string[]) || []
-    for (const cat of cats) {
-      if (EVENT_CATEGORIES.includes(cat as EventCategory)) {
-        monthEntry[cat] = (monthEntry[cat] || 0) + 1
-        categoryCountMap.set(cat, (categoryCountMap.get(cat) || 0) + 1)
-      }
+    const cat = event.category
+    if (EVENT_CATEGORIES.includes(cat as EventCategory)) {
+      monthEntry[cat] = (monthEntry[cat] || 0) + 1
+      categoryCountMap.set(cat, (categoryCountMap.get(cat) || 0) + 1)
     }
   }
 

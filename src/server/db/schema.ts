@@ -116,7 +116,7 @@ export const events = pgTable(
     lumaId: text("luma_id").unique(),
     title: text("title").notNull(),
     startTime: timestamp("start_time", { withTimezone: true }).notNull(),
-    categories: json("categories").$type<string[]>().notNull().default([]),
+    category: text("category").notNull().default("Other"),
     createdAt: timestamp("created_at", { withTimezone: true })
       .defaultNow()
       .notNull(),

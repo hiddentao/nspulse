@@ -7,12 +7,12 @@ interface CategorizableEvent {
   description?: string
 }
 
-const SYSTEM_PROMPT = `You are an event categorizer for a community dashboard. Categorize each event into one or more of these categories:
+const SYSTEM_PROMPT = `You are an event categorizer for a community dashboard. Categorize each event into exactly one of these categories:
 
 ${EVENT_CATEGORIES.map((c) => `- ${c}`).join("\n")}
 
-For each event, return a JSON object mapping event IDs to arrays of category strings.
-An event can belong to multiple categories if appropriate.
+For each event, return a JSON object mapping event IDs to a single category string.
+Pick the single most relevant category for each event.
 Only use categories from the list above.
 If unsure, use "Other".
 Return ONLY valid JSON, no markdown or explanation.`
@@ -29,8 +29,8 @@ async function categorizeBatch(
   client: Anthropic,
   batch: CategorizableEvent[],
   log?: (...args: any[]) => void,
-): Promise<Map<string, string[]>> {
-  const result = new Map<string, string[]>()
+): Promise<Map<string, string>> {
+  const result = new Map<string, string>()
 
   try {
     const response = await client.messages.create({
@@ -47,14 +47,14 @@ async function categorizeBatch(
       .replace(/^```(?:json)?\s*\n?/, "")
       .replace(/\n?```\s*$/, "")
       .trim()
-    const parsed = JSON.parse(cleaned) as Record<string, string[]>
+    const parsed = JSON.parse(cleaned) as Record<string, string>
 
-    for (const [id, categories] of Object.entries(parsed)) {
-      const valid = (Array.isArray(categories) ? categories : []).filter((c) =>
-        EVENT_CATEGORIES.includes(c as any),
-      )
-      if (valid.length > 0) {
-        result.set(id, valid)
+    for (const [id, category] of Object.entries(parsed)) {
+      if (
+        typeof category === "string" &&
+        EVENT_CATEGORIES.includes(category as any)
+      ) {
+        result.set(id, category)
       }
     }
   } catch (err) {
@@ -69,9 +69,9 @@ export async function categorizeEvents(
   events: CategorizableEvent[],
   apiKey: string,
   log?: (...args: any[]) => void,
-): Promise<Map<string, string[]>> {
+): Promise<Map<string, string>> {
   const client = new Anthropic({ apiKey })
-  const result = new Map<string, string[]>()
+  const result = new Map<string, string>()
   const batchSize = 15
 
   for (let i = 0; i < events.length; i += batchSize) {
@@ -81,8 +81,8 @@ export async function categorizeEvents(
     )
 
     const batchResult = await categorizeBatch(client, batch, log)
-    for (const [id, categories] of batchResult) {
-      result.set(id, categories)
+    for (const [id, category] of batchResult) {
+      result.set(id, category)
     }
 
     if (i + batchSize < events.length) {

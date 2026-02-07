@@ -46,7 +46,7 @@ export const run: JobRunner = async (params: JobParams) => {
         lumaId: e.lumaId ?? null,
         title: e.title,
         startTime: e.startTime,
-        categories: categoryMap.get(eventKey(e)) ?? [],
+        category: categoryMap.get(eventKey(e)) ?? "Other",
       }))
 
       const inserted = await insertEvents(db, dbRows)
