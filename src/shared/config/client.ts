@@ -11,7 +11,7 @@ export interface ClientConfig {
   APP_NAME: string
   APP_VERSION: string
   NODE_ENV: "development" | "production" | "test"
-  API_URL: string
+  CLIENT_API_BASE_URL?: string
   SENTRY_DSN?: string
 }
 
@@ -32,13 +32,13 @@ export const clientConfig: ClientConfig =
           .get("NODE_ENV")
           .default("development")
           .asEnum(["development", "production", "test"]),
-        API_URL: env.get("API_URL").required().asString(),
+        CLIENT_API_BASE_URL: env.get("CLIENT_API_BASE_URL").asString(),
         SENTRY_DSN: env.get("SENTRY_DSN").asString(),
       }
 
 // Validate critical client configuration on startup
 export function validateClientConfig() {
-  const requiredForClient = ["API_URL"]
+  const requiredForClient: (keyof ClientConfig)[] = []
 
   const missing = requiredForClient.filter((key) => {
     const value = clientConfig[key as keyof ClientConfig]
@@ -53,4 +53,15 @@ export function validateClientConfig() {
       `Missing required client environment variables: ${missing.join(", ")}`,
     )
   }
+}
+
+// Get the base URL for API requests from the client
+export function getClientApiBaseUrl(): string {
+  if (clientConfig.CLIENT_API_BASE_URL) {
+    return clientConfig.CLIENT_API_BASE_URL
+  }
+  if (isBrowser) {
+    return window.location.origin
+  }
+  return ""
 }
