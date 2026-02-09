@@ -1,60 +1,48 @@
-# QuickDapp
+# NS Pulse
 
-Production-ready boilerplate for vibe coders.
+![NS Pulse screenshot](https://raw.githubusercontent.com/hiddentao/nspulse/refs/heads/main/screenshot.png "NS Pulse Screenshot")
 
-QuickDapp gives you a batteries-included full-stack TypeScript foundation — authentication, database, GraphQL API, background workers, and a polished React frontend — so you can skip the setup and start building.
+**Live site: https://nspulse.xyz**
 
-## Features
-
-**Backend:** TypeScript, Bun, ElysiaJS, PostgreSQL + Drizzle ORM, GraphQL Yoga, WebSockets
-**Frontend:** React 19, TailwindCSS, Radix UI, React Query, dark/light theme
-**Auth:** Email/password, OAuth (Google, GitHub, etc.)
-**Infrastructure:** Background workers with cron, Docker deployment, single-executable binary builds
+Stats dashboard for [NS](https://ns.com), including info on monthly events, member countries and talents. Built using [QuickDapp](https://quickdapp.xyz).
 
 ## Getting Started
 
-### CLI (recommended)
+Requires: 
+* [Node.js](https://nodejs.org)
+* [Bun](https://bun.com)
+* [Docker](https://docker.com)
+
+Install dependencies
 
 ```bash
-bunx @quickdapp/cli create my-project
-
-# npx works too
-npx @quickdapp/cli create my-project
+bun i
 ```
 
-### Manual setup
+Start the database server in a separate terminal:
 
 ```bash
-# Terminal 1: Start PostgreSQL (keep running)
-docker-compose up postgres
+docker compose up --build
+```
 
-# Terminal 2: Run these commands
-bun install
-cp .env.example .env
+Setup database schema:
+
+```bash
 bun run db push
+```
+
+Run the dev server:
+
+```bash
 bun run dev
 ```
 
-## Scripts
+Hot-module reload is now enabled (except for changes to `.env` files). Access the site at [http://localhost:5173](http://localhost:5173)
 
-| Command | Description |
-|---------|-------------|
-| `bun run dev` | Start development server |
-| `bun run build` | Build for production |
-| `bun run prod` | Run production server |
-| `bun run test` | Run tests |
-| `bun run gen` | Generate types and migrations |
-| `bun run db push` | Push schema to database |
-| `bun run lint` | Run linter |
+## Deployment
 
-## Documentation
+The [Docker Build & Push](https://github.com/hiddentao/nspulse/actions/workflows/docker.yml) workflow auto-runs on `main` branch pushes, building the [`nspulse` image](https://github.com/hiddentao/nspulse/pkgs/container/nspulse). This then gets deployed to DigitalOcean.
 
-- [Full documentation](https://quickdapp.xyz/docs)
-- [Website](https://quickdapp.xyz)
-
-### LLM-Friendly Docs
-
-Machine-readable documentation is available at [quickdapp.xyz/llms.txt](https://quickdapp.xyz/llms.txt).
 
 ## License
 

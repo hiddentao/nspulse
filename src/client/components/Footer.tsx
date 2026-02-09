@@ -5,7 +5,7 @@ export function Footer() {
         <span>
           Made with ❤️ by{" "}
           <a
-            href="https://ns.com/taoofdev"
+            href="https://x.com/taoofdev"
             target="_blank"
             rel="noopener noreferrer"
             className="hover:text-nspulse-text"
