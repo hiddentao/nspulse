@@ -6,6 +6,7 @@ import { ErrorBoundary } from "./components/ErrorBoundary"
 import { Layout } from "./components/Layout"
 import { ToastProvider } from "./components/Toast"
 import { AuthProvider } from "./contexts/AuthContext"
+import { DataProvider } from "./contexts/DataContext"
 import { SocketProvider } from "./contexts/SocketContext"
 import { ThemeProvider } from "./contexts/ThemeContext"
 import { EventsPage } from "./pages/EventsPage"
@@ -33,19 +34,21 @@ export function App() {
         <ThemeProvider>
           <QueryClientProvider client={queryClient}>
             <AuthProvider>
-              <SocketProvider>
-                <ToastProvider>
-                  <BrowserRouter>
-                    <Routes>
-                      <Route element={<Layout />}>
-                        <Route path="/" element={<HomePage />} />
-                        <Route path="/events" element={<EventsPage />} />
-                        <Route path="/members" element={<MembersPage />} />
-                      </Route>
-                    </Routes>
-                  </BrowserRouter>
-                </ToastProvider>
-              </SocketProvider>
+              <DataProvider>
+                <SocketProvider>
+                  <ToastProvider>
+                    <BrowserRouter>
+                      <Routes>
+                        <Route element={<Layout />}>
+                          <Route path="/" element={<HomePage />} />
+                          <Route path="/events" element={<EventsPage />} />
+                          <Route path="/members" element={<MembersPage />} />
+                        </Route>
+                      </Routes>
+                    </BrowserRouter>
+                  </ToastProvider>
+                </SocketProvider>
+              </DataProvider>
             </AuthProvider>
           </QueryClientProvider>
         </ThemeProvider>

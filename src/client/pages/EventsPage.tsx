@@ -1,6 +1,3 @@
-import { getGraphQLClient } from "@shared/graphql/client"
-import { GET_EVENT_STATS } from "@shared/graphql/queries"
-import { useQuery } from "@tanstack/react-query"
 import { format, parse, startOfWeek } from "date-fns"
 import { useCallback, useMemo, useState } from "react"
 import {
@@ -24,27 +21,9 @@ import {
 } from "../../shared/constants"
 import { Loading } from "../components/Loading"
 import { SyncingIndicator } from "../components/SyncingIndicator"
+import { formatMonth, useData } from "../contexts/DataContext"
 import { useTheme } from "../contexts/ThemeContext"
 import { cn } from "../utils/cn"
-
-function formatMonth(m: string): string {
-  const [y, mo] = m.split("-")
-  const months = [
-    "Jan",
-    "Feb",
-    "Mar",
-    "Apr",
-    "May",
-    "Jun",
-    "Jul",
-    "Aug",
-    "Sep",
-    "Oct",
-    "Nov",
-    "Dec",
-  ]
-  return `${months[Number.parseInt(mo!) - 1]} ${y!.slice(2)}`
-}
 
 function formatDay(d: string): string {
   return format(new Date(d), "MMM d")
@@ -124,27 +103,12 @@ export function EventsPage() {
   const [view, setView] = useState<View>("overview")
   const [granularity, setGranularity] = useState<TimeGranularity>("month")
 
-  const { data, isLoading } = useQuery({
-    queryKey: ["eventStats"],
-    queryFn: async () => {
-      const response = await getGraphQLClient().request<{
-        getEventStats: {
-          monthlyData: Record<string, any>[]
-          categoryTotals: [string, number][]
-          totalEvents: number
-          lastUpdated: string | null
-          dailyData: { date: string; total: number }[]
-        }
-      }>(GET_EVENT_STATS)
-      return response.getEventStats
-    },
-    staleTime: 5 * 60 * 1000,
-  })
+  const { eventStats, isLoading } = useData()
 
-  const monthlyData = data?.monthlyData || []
-  const categoryTotals = data?.categoryTotals || []
-  const totalEvents = data?.totalEvents || 0
-  const dailyData = data?.dailyData || []
+  const monthlyData = eventStats?.monthlyData || []
+  const categoryTotals = eventStats?.categoryTotals || []
+  const totalEvents = eventStats?.totalEvents || 0
+  const dailyData = eventStats?.dailyData || []
 
   const sinceDate = useMemo(() => {
     const first = monthlyData[0]

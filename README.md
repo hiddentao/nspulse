@@ -19,6 +19,7 @@ Install dependencies
 bun i
 ```
 
+
 Start the database server in a separate terminal:
 
 ```bash
@@ -31,6 +32,12 @@ Setup database schema:
 bun run db push
 ```
 
+Get an [Anthropic API key](https://www.anthropic.com/learn/build-with-claude) and place it in `.env.local`:
+
+```
+ANTHROPIC_API_KEY=
+```
+
 Run the dev server:
 
 ```bash
@@ -38,6 +45,26 @@ bun run dev
 ```
 
 Hot-module reload is now enabled (except for changes to `.env` files). Access the site at [http://localhost:5173](http://localhost:5173)
+
+## Data sources
+
+### Events
+
+Event data is fetched directly from the [NS calendar](https://luman.com/ns) and then processed via Claude.
+
+### Members
+
+Member data is loaded in from `./data/*.csv` and processed via Claude and output as JSON into `./src/shared/stats/*.json`. 
+
+Instructions:
+
+1. Use [DiscordChatExporter](https://github.com/Tyrrrz/DiscordChatExporter) to export:
+  * `#reception` channel -> `./data/reception.csv`
+  * `#discussion` channel -> `./data/discussion.csv`
+2. Run `bun run scripts/crunchDataWithAi.ts`
+3. Check that `reception.json` and `discussion.json` both exist.
+
+_Note: `./src/shared/stats/*.json` is checked into git since the data doesn't change each day and it must be run manually._
 
 ## Deployment
 

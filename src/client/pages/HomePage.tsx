@@ -1,6 +1,3 @@
-import { getGraphQLClient } from "@shared/graphql/client"
-import { GET_EVENT_STATS } from "@shared/graphql/queries"
-import { useQuery } from "@tanstack/react-query"
 import { format, parse } from "date-fns"
 import { useMemo } from "react"
 import { Link } from "react-router-dom"
@@ -12,47 +9,16 @@ import {
   XAxis,
   YAxis,
 } from "recharts"
+import { formatMonth, useData } from "../contexts/DataContext"
 import { useTheme } from "../contexts/ThemeContext"
-
-function formatMonth(m: string): string {
-  const [y, mo] = m.split("-")
-  const months = [
-    "Jan",
-    "Feb",
-    "Mar",
-    "Apr",
-    "May",
-    "Jun",
-    "Jul",
-    "Aug",
-    "Sep",
-    "Oct",
-    "Nov",
-    "Dec",
-  ]
-  return `${months[Number.parseInt(mo!) - 1]} ${y!.slice(2)}`
-}
 
 export function HomePage() {
   const { resolvedTheme } = useTheme()
   const isDark = resolvedTheme === "dark"
+  const { eventStats } = useData()
 
-  const { data } = useQuery({
-    queryKey: ["eventStats"],
-    queryFn: async () => {
-      const response = await getGraphQLClient().request<{
-        getEventStats: {
-          monthlyData: Record<string, any>[]
-          totalEvents: number
-        }
-      }>(GET_EVENT_STATS)
-      return response.getEventStats
-    },
-    staleTime: 5 * 60 * 1000,
-  })
-
-  const monthlyData = data?.monthlyData || []
-  const totalEvents = data?.totalEvents || 0
+  const monthlyData = eventStats?.monthlyData || []
+  const totalEvents = eventStats?.totalEvents || 0
 
   const sinceDate = useMemo(() => {
     const first = monthlyData[0]
