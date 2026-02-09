@@ -8,7 +8,7 @@ function NavTab({ to, children }: { to: string; children: React.ReactNode }) {
       to={to}
       className={({ isActive }) =>
         cn(
-          "px-4 py-1.5 rounded-md text-sm font-medium transition-colors no-anchor-hover-styles",
+          "px-2 md:px-4 py-1.5 rounded-md text-xs md:text-sm font-medium transition-colors no-anchor-hover-styles",
           isActive
             ? "bg-nspulse-heading text-nspulse-bg"
             : "text-nspulse-muted hover:text-nspulse-text",
@@ -23,11 +23,11 @@ function NavTab({ to, children }: { to: string; children: React.ReactNode }) {
 export function Header() {
   return (
     <header className="sticky top-0 z-50 border-b border-nspulse-card-border bg-nspulse-bg/80 backdrop-blur-md">
-      <div className="px-8 md:px-12 h-14 flex items-center justify-between">
-        <div className="flex items-center gap-6">
+      <div className="px-4 md:px-12 h-14 flex items-center justify-between">
+        <div className="flex items-center gap-3 md:gap-6">
           <NavLink
             to="/"
-            className="text-sm font-mono font-bold text-nspulse-accent tracking-wide no-anchor-hover-styles"
+            className="text-xs md:text-sm font-mono font-bold text-nspulse-accent tracking-wide no-anchor-hover-styles"
           >
             NS Pulse
           </NavLink>
