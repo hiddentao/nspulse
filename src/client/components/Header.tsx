@@ -34,6 +34,7 @@ export function Header() {
           <nav className="flex items-center gap-1">
             <NavTab to="/events">Events</NavTab>
             <NavTab to="/members">Members</NavTab>
+            <NavTab to="/ideas">Ideas</NavTab>
           </nav>
         </div>
         <ThemeSwitcher />

@@ -1,8 +1,110 @@
 {
-  "generatedAt": "",
-  "totalMessages": 0,
-  "firstDate": "",
-  "lastDate": "",
-  "ideas": [],
-  "apps": []
+  "generatedAt": "2026-02-09T07:55:51.752Z",
+  "totalMessages": 21796,
+  "firstDate": "2024-08-28",
+  "lastDate": "2026-02-09",
+  "ideas": [
+    {
+      "name": "1:1 Meetup Program",
+      "description": "Structured one-hour paired meetings between community members to foster genuine connection and two-way discovery.",
+      "score": 51
+    },
+    {
+      "name": "Network Social Club",
+      "description": "A platform where participants can vouch for each other with labels to help members learn who's who and find commonalities in the community.",
+      "score": 52
+    },
+    {
+      "name": "Intramural Sports Community",
+      "description": "Building a community where exercise, healthy food, and play are integrated into daily life with organized leagues for basketball, beach volleyball, and beach soccer.",
+      "score": 63
+    },
+    {
+      "name": "Hard Skills Class",
+      "description": "First-principles class teaching practical skills like woodworking, cooking, and building using hands-on projects.",
+      "score": 48
+    },
+    {
+      "name": "Workshop on Creating New Societies and Communities",
+      "description": "Educational workshop on founding and designing resilient new communities and startup-societies with shared purpose and philosophy.",
+      "score": 27
+    },
+    {
+      "name": "Regen Network State",
+      "description": "A network of resource-resilient and intentional lifestyle community land developments collaborating globally, with first location in Bali, Indonesia.",
+      "score": 29
+    },
+    {
+      "name": "Café Apartment Concept for NS",
+      "description": "Transform a multi-story building into creative spaces with cafés, boutiques, and community areas inspired by Ho Chi Minh City's Café Apartment model.",
+      "score": 23
+    },
+    {
+      "name": "Post-AGI Human Meaning Problem",
+      "description": "Research and discussion initiative addressing how humans can find meaning and purpose in a post-AGI world, exploring decentralized AI governance alternatives.",
+      "score": 34
+    },
+    {
+      "name": "Half Baked Pitching Event",
+      "description": "A training event for improving pitching, storytelling, and idea-sharing skills with no prerequisites required.",
+      "score": 29
+    },
+    {
+      "name": "Longevity Series at NS",
+      "description": "Lecture and discussion series on aging, radical longevity, and the future of health with expert deep dives and open Q&A debates.",
+      "score": 68
+    }
+  ],
+  "apps": [
+    {
+      "name": "NSPals",
+      "description": "Community matching platform that helps NS members connect based on profiles and interests with discovery features.",
+      "score": 74
+    },
+    {
+      "name": "NS Robotics Club - Clippy",
+      "description": "Robotic arms built by NS Robotics Club with plans for workshop and triple production within the cohort.",
+      "score": 73
+    },
+    {
+      "name": "Insurus",
+      "description": "Home-safety Protect2Earn platform with AI photo verification, VeChain blockchain integration, and rewards system for monthly property safety checks.",
+      "score": 74
+    },
+    {
+      "name": "Slouch Sniper",
+      "description": "Posture detection app that helps users maintain proper sitting posture with trainable ML model and gamification features.",
+      "score": 47
+    },
+    {
+      "name": "Daily Luma Event Auto-posting Bot",
+      "description": "Discord bot that automatically posts daily NS events from Luma with proper timezone handling.",
+      "score": 44
+    },
+    {
+      "name": "NS Bounty Board",
+      "description": "Lightweight task marketplace for NS members to post incentivized jobs and complete bounties using USDC payments.",
+      "score": 40
+    },
+    {
+      "name": "CICADA Finance",
+      "description": "Asset management platform combining RWA and DeFi yield.",
+      "score": 38
+    },
+    {
+      "name": "Humans of NS",
+      "description": "Photography project documenting and sharing stories from Network School community members.",
+      "score": 36
+    },
+    {
+      "name": "Network Graph Visualization Tool",
+      "description": "Application for analyzing and visualizing network connections using Farcaster usernames and social graphs.",
+      "score": 26
+    },
+    {
+      "name": "Blueprint E-Commerce Platform",
+      "description": "Online ordering system for Blueprint health products with warehouse expansion to Malaysia and Singapore.",
+      "score": 26
+    }
+  ]
 }

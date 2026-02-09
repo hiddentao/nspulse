@@ -165,8 +165,17 @@ export const createApp = async (
   const staticDir =
     serverConfig.STATIC_ASSETS_FOLDER || path.join(import.meta.dir, "static")
 
-  // Serve index.html for root path (SPA entry point)
-  app.get("/", async ({ set }) => {
+  app.use(
+    staticPlugin({
+      assets: staticDir,
+      prefix: "",
+      indexHTML: false,
+      alwaysStatic: true,
+    }),
+  )
+
+  // Catch-all route to serve index.html for SPA client-side routing
+  app.get("/*", async ({ set }) => {
     const indexPath = path.join(staticDir, "index.html")
     const file = Bun.file(indexPath)
     if (await file.exists()) {
@@ -176,15 +185,6 @@ export const createApp = async (
     set.status = 404
     return "Not found"
   })
-
-  app.use(
-    staticPlugin({
-      assets: staticDir,
-      prefix: "",
-      indexHTML: false,
-      alwaysStatic: true,
-    }),
-  )
 
   // Start the server
   const server = app.listen(

@@ -11,6 +11,7 @@ import { SocketProvider } from "./contexts/SocketContext"
 import { ThemeProvider } from "./contexts/ThemeContext"
 import { EventsPage } from "./pages/EventsPage"
 import { HomePage } from "./pages/HomePage"
+import { IdeasPage } from "./pages/IdeasPage"
 import { MembersPage } from "./pages/MembersPage"
 
 const queryClient = new QueryClient({
@@ -43,6 +44,7 @@ export function App() {
                           <Route path="/" element={<HomePage />} />
                           <Route path="/events" element={<EventsPage />} />
                           <Route path="/members" element={<MembersPage />} />
+                          <Route path="/ideas" element={<IdeasPage />} />
                         </Route>
                       </Routes>
                     </BrowserRouter>

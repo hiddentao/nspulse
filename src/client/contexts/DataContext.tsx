@@ -1,5 +1,6 @@
 import { getGraphQLClient } from "@shared/graphql/client"
 import { GET_EVENT_STATS } from "@shared/graphql/queries"
+import discussionData from "@shared/stats/discussion.json"
 import receptionData from "@shared/stats/reception.json"
 import { useQuery } from "@tanstack/react-query"
 import { createContext, type ReactNode, useContext, useMemo } from "react"
@@ -20,9 +21,24 @@ export interface MemberStatsData {
   interestCategories: [string, number][]
 }
 
+export interface RankedItem {
+  name: string
+  description: string
+  score: number
+}
+
+export interface DiscussionStatsData {
+  totalMessages: number
+  firstDate: string
+  lastDate: string
+  ideas: RankedItem[]
+  apps: RankedItem[]
+}
+
 interface DataContextValue {
   eventStats: EventStatsData | undefined
   memberStats: MemberStatsData
+  discussionStats: DiscussionStatsData
   isLoading: boolean
 }
 
@@ -73,6 +89,24 @@ function parseMemberStats(): MemberStatsData {
   }
 }
 
+function parseDiscussionStats(): DiscussionStatsData {
+  const raw = discussionData as unknown as {
+    totalMessages: number
+    firstDate: string
+    lastDate: string
+    ideas: RankedItem[]
+    apps: RankedItem[]
+  }
+
+  return {
+    totalMessages: raw.totalMessages,
+    firstDate: raw.firstDate,
+    lastDate: raw.lastDate,
+    ideas: [...raw.ideas].sort((a, b) => b.score - a.score),
+    apps: [...raw.apps].sort((a, b) => b.score - a.score),
+  }
+}
+
 export function DataProvider({ children }: { children: ReactNode }) {
   const { data, isLoading } = useQuery({
     queryKey: ["eventStats"],
@@ -86,9 +120,12 @@ export function DataProvider({ children }: { children: ReactNode }) {
   })
 
   const memberStats = useMemo(() => parseMemberStats(), [])
+  const discussionStats = useMemo(() => parseDiscussionStats(), [])
 
   return (
-    <DataContext.Provider value={{ eventStats: data, memberStats, isLoading }}>
+    <DataContext.Provider
+      value={{ eventStats: data, memberStats, discussionStats, isLoading }}
+    >
       {children}
     </DataContext.Provider>
   )

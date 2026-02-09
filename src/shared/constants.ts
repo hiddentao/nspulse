@@ -143,6 +143,19 @@ export const MEMBER_INTEREST_CATEGORY_COLORS: Record<
   Unknown: "#6b7280",
 }
 
+export const RANKED_ITEM_COLORS = [
+  "#8b5cf6",
+  "#3b82f6",
+  "#06b6d4",
+  "#22c55e",
+  "#eab308",
+  "#f97316",
+  "#ef4444",
+  "#ec4899",
+  "#d946ef",
+  "#14b8a6",
+] as const
+
 export function getCategoryColor(
   colorMap: Record<string, string>,
   category: string,
