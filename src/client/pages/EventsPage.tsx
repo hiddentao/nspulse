@@ -1,13 +1,11 @@
 import { format, parse, startOfWeek } from "date-fns"
+import { Info } from "lucide-react"
 import { useCallback, useMemo, useState } from "react"
 import {
   Area,
   AreaChart,
   Bar,
   BarChart,
-  Cell,
-  Pie,
-  PieChart,
   ResponsiveContainer,
   Tooltip,
   XAxis,
@@ -17,71 +15,26 @@ import {
   EVENT_CATEGORIES,
   EVENT_CATEGORY_COLORS,
   EVENT_CATEGORY_ICONS,
-  type EventCategory,
 } from "../../shared/constants"
+import { CategoryBars } from "../components/CategoryBars"
+import { ChartTooltip } from "../components/ChartTooltip"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "../components/Dialog"
+import { DonutChart } from "../components/DonutChart"
 import { Loading } from "../components/Loading"
+import { StatCard } from "../components/StatCard"
 import { SyncingIndicator } from "../components/SyncingIndicator"
+import { ViewToggle } from "../components/ViewToggle"
 import { formatMonth, useData } from "../contexts/DataContext"
 import { useTheme } from "../contexts/ThemeContext"
-import { cn } from "../utils/cn"
 
 function formatDay(d: string): string {
   return format(new Date(d), "MMM d")
-}
-
-interface StatCardProps {
-  label: string
-  value: string | number
-  sub?: string
-}
-
-function StatCard({ label, value, sub }: StatCardProps) {
-  return (
-    <div className="bg-nspulse-card-bg border border-nspulse-card-border rounded-xl px-6 py-5 flex-1 min-w-[160px]">
-      <div className="text-[13px] text-nspulse-muted tracking-[0.05em] uppercase mb-2">
-        {label}
-      </div>
-      <div className="text-4xl font-bold leading-none text-nspulse-heading">
-        {value}
-      </div>
-      {sub && (
-        <div className="text-[13px] text-nspulse-muted mt-1.5">{sub}</div>
-      )}
-    </div>
-  )
-}
-
-function ChartTooltip({ active, payload, label }: any) {
-  const { resolvedTheme } = useTheme()
-  const isDark = resolvedTheme === "dark"
-
-  if (!active || !payload?.length) return null
-  return (
-    <div
-      className="rounded-lg px-4 py-3 text-[13px]"
-      style={{
-        background: isDark ? "#1A1B1E" : "#FFFFFF",
-        border: `1px solid ${isDark ? "rgba(255,255,255,0.1)" : "#E5E7EB"}`,
-        color: isDark ? "#C1C2C5" : "#374151",
-      }}
-    >
-      <div
-        className="font-semibold mb-1.5"
-        style={{ color: isDark ? "#F1F3F5" : "#111827" }}
-      >
-        {label}
-      </div>
-      {payload
-        .filter((p: any) => p.value > 0)
-        .sort((a: any, b: any) => b.value - a.value)
-        .map((p: any) => (
-          <div key={p.name} className="flex justify-between gap-4 mb-0.5">
-            <span style={{ color: p.color }}>{p.name}</span>
-            <span className="font-semibold">{p.value}</span>
-          </div>
-        ))}
-    </div>
-  )
 }
 
 type View = "overview" | "categories"
@@ -97,6 +50,7 @@ export function EventsPage() {
     fontFamily: "var(--font-mono)",
   }
 
+  const [showInfo, setShowInfo] = useState(false)
   const [selectedCats, setSelectedCats] = useState(
     () => new Set<string>(EVENT_CATEGORIES),
   )
@@ -137,16 +91,6 @@ export function EventsPage() {
         .filter((m: any) => m.total > 5)
         .map((m: any) => ({ ...m, name: formatMonth(m.month) })),
     [monthlyData],
-  )
-
-  const pieData = useMemo(
-    () =>
-      categoryTotals.map(([name, value]: [string, number]) => ({
-        name,
-        value,
-        color: EVENT_CATEGORY_COLORS[name as EventCategory] || "#6b7280",
-      })),
-    [categoryTotals],
   )
 
   const weeklyData = useMemo(() => {
@@ -209,9 +153,17 @@ export function EventsPage() {
 
   return (
     <div className="px-8 md:px-12 py-8 max-w-[1200px]">
-      <h1 className="text-3xl font-bold text-nspulse-heading mb-8">Events</h1>
+      <div className="flex items-center gap-2 mb-8">
+        <h1 className="text-3xl font-bold text-nspulse-heading">Events</h1>
+        <button
+          type="button"
+          onClick={() => setShowInfo(true)}
+          className="text-nspulse-muted hover:text-nspulse-text transition-colors"
+        >
+          <Info className="h-5 w-5" />
+        </button>
+      </div>
 
-      {/* Stats Row */}
       <div className="flex gap-4 flex-wrap mb-10">
         <StatCard
           label="Total Events"
@@ -235,49 +187,26 @@ export function EventsPage() {
         />
       </div>
 
-      {/* Tab Nav */}
-      <div className="flex gap-1 mb-8">
-        {(["overview", "categories"] as View[]).map((v) => (
-          <button
-            key={v}
-            onClick={() => setView(v)}
-            type="button"
-            className={cn(
-              "px-5 py-2 rounded-md border-none font-semibold text-sm font-mono uppercase tracking-[0.05em] cursor-pointer",
-              view === v
-                ? "bg-nspulse-heading text-nspulse-bg"
-                : "bg-transparent text-nspulse-muted hover:text-nspulse-text",
-            )}
-          >
-            {v}
-          </button>
-        ))}
+      <div className="mb-8">
+        <ViewToggle
+          options={["overview", "categories"] as View[]}
+          value={view}
+          onChange={setView}
+        />
       </div>
 
-      {/* Overview */}
       {view === "overview" && (
         <div>
           <div className="flex items-center justify-between mb-5">
             <h2 className="text-xl font-semibold text-nspulse-heading">
               Events Over Time
             </h2>
-            <div className="flex gap-1">
-              {(["month", "week", "day"] as TimeGranularity[]).map((g) => (
-                <button
-                  key={g}
-                  onClick={() => setGranularity(g)}
-                  type="button"
-                  className={cn(
-                    "px-3 py-1 rounded-md text-xs font-semibold font-mono uppercase tracking-[0.05em] cursor-pointer border-none",
-                    granularity === g
-                      ? "bg-nspulse-heading text-nspulse-bg"
-                      : "bg-transparent text-nspulse-muted hover:text-nspulse-text",
-                  )}
-                >
-                  {g}
-                </button>
-              ))}
-            </div>
+            <ViewToggle
+              options={["month", "week", "day"] as TimeGranularity[]}
+              value={granularity}
+              onChange={setGranularity}
+              size="sm"
+            />
           </div>
           <div className="h-[360px] mb-12">
             <ResponsiveContainer width="100%" height="100%">
@@ -326,81 +255,20 @@ export function EventsPage() {
             Category Breakdown
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <div>
-              {categoryTotals.map(([cat, count]: [string, number]) => {
-                const pct =
-                  totalEvents > 0 ? Math.round((count / totalEvents) * 100) : 0
-                const maxCount = categoryTotals[0]?.[1] || 1
-                return (
-                  <div key={cat} className="mb-3">
-                    <div className="flex justify-between mb-1">
-                      <span className="text-[13px] text-nspulse-text">
-                        {EVENT_CATEGORY_ICONS[cat as EventCategory]} {cat}
-                      </span>
-                      <span className="text-[13px] font-mono text-nspulse-text">
-                        {count}{" "}
-                        <span className="text-nspulse-muted">({pct}%)</span>
-                      </span>
-                    </div>
-                    <div
-                      className="h-1.5 rounded-sm overflow-hidden"
-                      style={{
-                        background: isDark
-                          ? "rgba(255,255,255,0.04)"
-                          : "rgba(0,0,0,0.06)",
-                      }}
-                    >
-                      <div
-                        className="h-full rounded-sm transition-all duration-500"
-                        style={{
-                          width: `${(count / maxCount) * 100}%`,
-                          background:
-                            EVENT_CATEGORY_COLORS[cat as EventCategory] ||
-                            "#6b7280",
-                        }}
-                      />
-                    </div>
-                  </div>
-                )
-              })}
-            </div>
-            <div className="flex justify-center items-center">
-              <ResponsiveContainer width={300} height={300}>
-                <PieChart>
-                  <Pie
-                    data={pieData}
-                    dataKey="value"
-                    nameKey="name"
-                    cx="50%"
-                    cy="50%"
-                    outerRadius={120}
-                    innerRadius={60}
-                    paddingAngle={2}
-                    strokeWidth={0}
-                  >
-                    {pieData.map((entry: { name: string; color: string }) => (
-                      <Cell key={entry.name} fill={entry.color} />
-                    ))}
-                  </Pie>
-                  <Tooltip
-                    contentStyle={{
-                      background: isDark ? "#1A1B1E" : "#FFFFFF",
-                      border: `1px solid ${isDark ? "rgba(255,255,255,0.1)" : "#E5E7EB"}`,
-                      borderRadius: 8,
-                      fontSize: 13,
-                      color: isDark ? "#C1C2C5" : "#374151",
-                    }}
-                    itemStyle={{ color: isDark ? "#C1C2C5" : "#374151" }}
-                    labelStyle={{ color: isDark ? "#F1F3F5" : "#111827" }}
-                  />
-                </PieChart>
-              </ResponsiveContainer>
-            </div>
+            <CategoryBars
+              data={categoryTotals}
+              total={totalEvents}
+              colorMap={EVENT_CATEGORY_COLORS}
+              iconMap={EVENT_CATEGORY_ICONS}
+            />
+            <DonutChart
+              data={categoryTotals}
+              colorMap={EVENT_CATEGORY_COLORS}
+            />
           </div>
         </div>
       )}
 
-      {/* Categories View */}
       {view === "categories" && (
         <div>
           <h2 className="text-xl font-semibold text-nspulse-heading mb-4">
@@ -455,12 +323,34 @@ export function EventsPage() {
         </div>
       )}
 
-      <p className="text-[13px] text-nspulse-muted mt-12">
-        This data is compiled from the NS calendar at{" "}
-        <a href="https://lu.ma/ns" target="_blank" rel="noopener noreferrer">
-          https://lu.ma/ns
-        </a>
-      </p>
+      <Dialog open={showInfo} onOpenChange={setShowInfo}>
+        <DialogContent
+          onOpenAutoFocus={(e) => e.preventDefault()}
+          className="border-nspulse-card-border bg-nspulse-card-bg text-nspulse-text"
+        >
+          <DialogHeader>
+            <DialogTitle className="text-nspulse-heading">
+              Data Source
+            </DialogTitle>
+            <DialogDescription className="text-nspulse-muted">
+              {totalEvents.toLocaleString()} events
+              {sinceDate ? ` from ${sinceDate}` : ""}
+              {monthlyData.length > 1
+                ? ` to ${formatMonth(monthlyData.at(-1)!.month)}`
+                : ""}
+              , compiled from the NS calendar at{" "}
+              <a
+                href="https://lu.ma/ns"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="underline hover:text-nspulse-text"
+              >
+                lu.ma/ns
+              </a>
+            </DialogDescription>
+          </DialogHeader>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

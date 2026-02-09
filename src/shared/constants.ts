@@ -39,17 +39,14 @@ export const EMAIL_VERIFICATION_CODE_MAX = 999999
 
 export const EVENT_CATEGORY = {
   EDUCATION_LEARNING: "Education & Learning",
-  FITNESS_SPORTS: "Fitness & Sports",
-  HEALTH_WELLNESS: "Health & Wellness",
+  HEALTH_FITNESS: "Health & Fitness",
   SOCIAL_COMMUNITY: "Social & Community",
   BUSINESS_STARTUPS: "Business & Startups",
-  AI_DATA: "AI & Data",
-  TECH_ENGINEERING: "Tech & Engineering",
+  TECH_AI: "Tech & AI",
   CREATIVE_ARTS: "Creative & Arts",
   OUTDOOR_ADVENTURE: "Outdoor & Adventure",
   GOVERNANCE_POLICY: "Governance & Policy",
   CONFERENCE_SUMMIT: "Conference & Summit",
-  FOOD_DINING: "Food & Dining",
   OTHER: "Other",
 } as const
 
@@ -58,34 +55,105 @@ export const EVENT_CATEGORIES: EventCategory[] = Object.values(EVENT_CATEGORY)
 
 export const EVENT_CATEGORY_ICONS: Record<EventCategory, string> = {
   "Education & Learning": "📚",
-  "Fitness & Sports": "🏃",
-  "Health & Wellness": "🧘",
+  "Health & Fitness": "💪",
   "Social & Community": "❤️",
   "Business & Startups": "🚀",
-  "AI & Data": "🤖",
-  "Tech & Engineering": "⚙️",
+  "Tech & AI": "🤖",
   "Creative & Arts": "🎨",
   "Outdoor & Adventure": "🌿",
   "Governance & Policy": "🏛️",
   "Conference & Summit": "🎤",
-  "Food & Dining": "🍜",
   Other: "🤷🏾‍♂️",
 }
 
 export const EVENT_CATEGORY_COLORS: Record<EventCategory, string> = {
   "Education & Learning": "#3b82f6",
-  "Fitness & Sports": "#ef4444",
-  "Health & Wellness": "#22c55e",
+  "Health & Fitness": "#22c55e",
   "Social & Community": "#ec4899",
   "Business & Startups": "#f97316",
-  "AI & Data": "#8b5cf6",
-  "Tech & Engineering": "#6366f1",
+  "Tech & AI": "#8b5cf6",
   "Creative & Arts": "#d946ef",
   "Outdoor & Adventure": "#84cc16",
   "Governance & Policy": "#eab308",
   "Conference & Summit": "#10b981",
-  "Food & Dining": "#f43f5e",
   Other: "#6b7280",
+}
+
+export const MEMBER_SKILL_CATEGORIES = [
+  "Crypto & Web3",
+  "Software Engineering",
+  "Business & Entrepreneurship",
+  "Data & AI",
+  "Finance & Trading",
+  "Marketing & Growth",
+  "Design & Creative",
+  "Operations",
+  "Content Creation",
+  "Research & Academia",
+  "Unknown",
+] as const
+
+export type MemberSkillCategory = (typeof MEMBER_SKILL_CATEGORIES)[number]
+
+export const MEMBER_SKILL_CATEGORY_COLORS: Record<MemberSkillCategory, string> =
+  {
+    "Crypto & Web3": "#8b5cf6",
+    "Software Engineering": "#3b82f6",
+    "Business & Entrepreneurship": "#f97316",
+    "Data & AI": "#06b6d4",
+    "Finance & Trading": "#eab308",
+    "Marketing & Growth": "#ec4899",
+    "Design & Creative": "#d946ef",
+    Operations: "#64748b",
+    "Content Creation": "#f43f5e",
+    "Research & Academia": "#14b8a6",
+    Unknown: "#6b7280",
+  }
+
+export const MEMBER_INTEREST_CATEGORIES = [
+  "Technology",
+  "Finance & Investing",
+  "Health & Fitness",
+  "Arts & Music",
+  "Reading & Learning",
+  "Philosophy & Mindfulness",
+  "Networking & Community",
+  "Travel & Culture",
+  "Sports",
+  "Social Impact",
+  "Unknown",
+] as const
+
+export type MemberInterestCategory = (typeof MEMBER_INTEREST_CATEGORIES)[number]
+
+export const MEMBER_INTEREST_CATEGORY_COLORS: Record<
+  MemberInterestCategory,
+  string
+> = {
+  Technology: "#3b82f6",
+  "Finance & Investing": "#eab308",
+  "Health & Fitness": "#22c55e",
+  "Arts & Music": "#d946ef",
+  "Reading & Learning": "#06b6d4",
+  "Philosophy & Mindfulness": "#a855f7",
+  "Networking & Community": "#ec4899",
+  "Travel & Culture": "#f97316",
+  Sports: "#ef4444",
+  "Social Impact": "#14b8a6",
+  Unknown: "#6b7280",
+}
+
+export function getCategoryColor(
+  colorMap: Record<string, string>,
+  category: string,
+): string {
+  if (colorMap[category]) return colorMap[category]
+  let hash = 0
+  for (const ch of category) {
+    hash = ch.charCodeAt(0) + ((hash << 5) - hash)
+  }
+  const hue = Math.abs(hash) % 360
+  return `hsl(${hue}, 55%, 55%)`
 }
 
 export const LUMA_CALENDAR_API_ID = "cal-4dWxlBFjW9Cd6ou"
@@ -95,3 +163,32 @@ export const SETTINGS_KEYS = {
   LUMA_LAST_FETCHED_DATE: "luma_last_fetched_date",
   EVENT_STATS_CACHE: "event_stats_cache",
 } as const
+
+// AI processing config shared by scripts and workers
+export const AI_MODEL = "claude-haiku-4-5-20251001"
+export const AI_MAX_TOKENS = 4096
+export const AI_BATCH_DELAY_MS = 500
+export const AI_RETRY_DELAY_MS = 2000
+export const AI_CONTENT_SLICE_LIMIT = 500
+export const AI_DESCRIPTION_SLICE_LIMIT = 200
+export const AI_CLASSIFY_BATCH_SIZE = 10
+export const AI_CATEGORIZE_BATCH_SIZE = 15
+
+export const AI_RECEPTION_CLASSIFY_PROMPT = `You classify Discord messages from a community reception channel.
+
+For each message, return a JSON object keyed by index with:
+- "type": "intro" if the person is introducing themselves, otherwise "skip"
+- "skills": comma-separated skills/expertise they mention, or "-"
+- "interests": comma-separated interests/hobbies they mention, or "-"
+
+Return ONLY valid JSON, no markdown or explanation.`
+
+export const AI_EVENT_CATEGORIZE_PROMPT = `You are an event categorizer for a community dashboard. Categorize each event into exactly one of these categories:
+
+${EVENT_CATEGORIES.map((c) => `- ${c}`).join("\n")}
+
+For each event, return a JSON object mapping event IDs to a single category string.
+Pick the single most relevant category for each event.
+Only use categories from the list above.
+If unsure, use "Other".
+Return ONLY valid JSON, no markdown or explanation.`

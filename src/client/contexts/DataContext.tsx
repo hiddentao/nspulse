@@ -1,7 +1,8 @@
 import { getGraphQLClient } from "@shared/graphql/client"
 import { GET_EVENT_STATS } from "@shared/graphql/queries"
+import receptionData from "@shared/stats/reception.json"
 import { useQuery } from "@tanstack/react-query"
-import { createContext, type ReactNode, useContext } from "react"
+import { createContext, type ReactNode, useContext, useMemo } from "react"
 
 export interface EventStatsData {
   monthlyData: Record<string, any>[]
@@ -11,8 +12,17 @@ export interface EventStatsData {
   dailyData: { date: string; total: number }[]
 }
 
+export interface MemberStatsData {
+  totalIntros: number
+  firstDate: string
+  lastDate: string
+  skillCategories: [string, number][]
+  interestCategories: [string, number][]
+}
+
 interface DataContextValue {
   eventStats: EventStatsData | undefined
+  memberStats: MemberStatsData
   isLoading: boolean
 }
 
@@ -37,6 +47,32 @@ export function formatMonth(m: string): string {
   return `${months[Number.parseInt(mo!) - 1]} ${y!.slice(2)}`
 }
 
+function parseMemberStats(): MemberStatsData {
+  const raw = receptionData as unknown as {
+    totalIntros: number
+    firstDate: string
+    lastDate: string
+    skillCategories: Record<string, number>
+    interestCategories: Record<string, number>
+  }
+
+  const sortedSkills = Object.entries(raw.skillCategories).sort(
+    ([, a], [, b]) => b - a,
+  ) as [string, number][]
+
+  const sortedInterests = Object.entries(raw.interestCategories).sort(
+    ([, a], [, b]) => b - a,
+  ) as [string, number][]
+
+  return {
+    totalIntros: raw.totalIntros,
+    firstDate: raw.firstDate,
+    lastDate: raw.lastDate,
+    skillCategories: sortedSkills,
+    interestCategories: sortedInterests,
+  }
+}
+
 export function DataProvider({ children }: { children: ReactNode }) {
   const { data, isLoading } = useQuery({
     queryKey: ["eventStats"],
@@ -49,8 +85,10 @@ export function DataProvider({ children }: { children: ReactNode }) {
     staleTime: 5 * 60 * 1000,
   })
 
+  const memberStats = useMemo(() => parseMemberStats(), [])
+
   return (
-    <DataContext.Provider value={{ eventStats: data, isLoading }}>
+    <DataContext.Provider value={{ eventStats: data, memberStats, isLoading }}>
       {children}
     </DataContext.Provider>
   )

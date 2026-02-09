@@ -1,5 +1,13 @@
 import Anthropic from "@anthropic-ai/sdk"
-import { EVENT_CATEGORIES } from "../../shared/constants"
+import {
+  AI_BATCH_DELAY_MS,
+  AI_CATEGORIZE_BATCH_SIZE,
+  AI_DESCRIPTION_SLICE_LIMIT,
+  AI_EVENT_CATEGORIZE_PROMPT,
+  AI_MAX_TOKENS,
+  AI_MODEL,
+  EVENT_CATEGORIES,
+} from "../../shared/constants"
 
 interface CategorizableEvent {
   id: string
@@ -7,19 +15,11 @@ interface CategorizableEvent {
   description?: string
 }
 
-const SYSTEM_PROMPT = `You are an event categorizer for a community dashboard. Categorize each event into exactly one of these categories:
-
-${EVENT_CATEGORIES.map((c) => `- ${c}`).join("\n")}
-
-For each event, return a JSON object mapping event IDs to a single category string.
-Pick the single most relevant category for each event.
-Only use categories from the list above.
-If unsure, use "Other".
-Return ONLY valid JSON, no markdown or explanation.`
-
 function buildUserPrompt(events: CategorizableEvent[]): string {
   const lines = events.map((e) => {
-    const desc = e.description ? ` — ${e.description.slice(0, 200)}` : ""
+    const desc = e.description
+      ? ` — ${e.description.slice(0, AI_DESCRIPTION_SLICE_LIMIT)}`
+      : ""
     return `${e.id}: ${e.title}${desc}`
   })
   return `Categorize these events:\n\n${lines.join("\n")}`
@@ -34,9 +34,9 @@ async function categorizeBatch(
 
   try {
     const response = await client.messages.create({
-      model: "claude-haiku-4-5-20251001",
-      max_tokens: 4096,
-      system: SYSTEM_PROMPT,
+      model: AI_MODEL,
+      max_tokens: AI_MAX_TOKENS,
+      system: AI_EVENT_CATEGORIZE_PROMPT,
       messages: [{ role: "user", content: buildUserPrompt(batch) }],
     })
 
@@ -72,12 +72,10 @@ export async function categorizeEvents(
 ): Promise<Map<string, string>> {
   const client = new Anthropic({ apiKey })
   const result = new Map<string, string>()
-  const batchSize = 15
-
-  for (let i = 0; i < events.length; i += batchSize) {
-    const batch = events.slice(i, i + batchSize)
+  for (let i = 0; i < events.length; i += AI_CATEGORIZE_BATCH_SIZE) {
+    const batch = events.slice(i, i + AI_CATEGORIZE_BATCH_SIZE)
     log?.(
-      `Categorizing batch ${Math.floor(i / batchSize) + 1}/${Math.ceil(events.length / batchSize)} (${batch.length} events)`,
+      `Categorizing batch ${Math.floor(i / AI_CATEGORIZE_BATCH_SIZE) + 1}/${Math.ceil(events.length / AI_CATEGORIZE_BATCH_SIZE)} (${batch.length} events)`,
     )
 
     const batchResult = await categorizeBatch(client, batch, log)
@@ -85,8 +83,8 @@ export async function categorizeEvents(
       result.set(id, category)
     }
 
-    if (i + batchSize < events.length) {
-      await new Promise((resolve) => setTimeout(resolve, 500))
+    if (i + AI_CATEGORIZE_BATCH_SIZE < events.length) {
+      await new Promise((resolve) => setTimeout(resolve, AI_BATCH_DELAY_MS))
     }
   }
 

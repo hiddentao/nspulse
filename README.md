@@ -54,17 +54,10 @@ Event data is fetched directly from the [NS calendar](https://luman.com/ns) and 
 
 ### Members
 
-Member data is loaded in from `./data/*.csv` and processed via Claude and output as JSON into `./src/shared/stats/*.json`. 
-
-Instructions:
-
 1. Use [DiscordChatExporter](https://github.com/Tyrrrz/DiscordChatExporter) to export:
   * `#reception` channel -> `./data/reception.csv`
-  * `#discussion` channel -> `./data/discussion.csv`
-2. Run `bun run scripts/crunchDataWithAi.ts`
-3. Check that `reception.json` and `discussion.json` both exist.
-
-_Note: `./src/shared/stats/*.json` is checked into git since the data doesn't change each day and it must be run manually._
+2. Run `bun run scripts/parseReceptionCsv.ts`
+3. Check that `./src/shared/stats/reception.json` exists.
 
 ## Deployment
 

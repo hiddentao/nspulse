@@ -1,20 +1,9 @@
 import { format, parse } from "date-fns"
 import { useMemo } from "react"
-import { Link } from "react-router-dom"
-import {
-  Area,
-  AreaChart,
-  ResponsiveContainer,
-  Tooltip,
-  XAxis,
-  YAxis,
-} from "recharts"
+import { AreaChartCard } from "../components/AreaChartCard"
 import { formatMonth, useData } from "../contexts/DataContext"
-import { useTheme } from "../contexts/ThemeContext"
 
 export function HomePage() {
-  const { resolvedTheme } = useTheme()
-  const isDark = resolvedTheme === "dark"
   const { eventStats } = useData()
 
   const monthlyData = eventStats?.monthlyData || []
@@ -26,19 +15,13 @@ export function HomePage() {
     return format(parse(first.month, "yyyy-MM", new Date()), "MMM yyyy")
   }, [monthlyData])
 
-  const chartData = useMemo(
+  const eventsChartData = useMemo(
     () =>
       monthlyData
         .filter((m: any) => m.total > 5)
         .map((m: any) => ({ ...m, name: formatMonth(m.month) })),
     [monthlyData],
   )
-
-  const axisTick = {
-    fill: isDark ? "#5C5F66" : "#9CA3AF",
-    fontSize: 10,
-    fontFamily: "var(--font-mono)",
-  }
 
   return (
     <div className="px-8 md:px-12 py-12 max-w-[1200px]">
@@ -51,78 +34,15 @@ export function HomePage() {
         categorized via AI.
       </p>
 
-      {/* Mini events chart */}
-      {chartData.length > 0 && (
-        <Link to="/events" className="block no-anchor-hover-styles mb-12 group">
-          <div className="bg-nspulse-card-bg border border-nspulse-card-border rounded-xl p-6 transition-shadow hover:shadow-md">
-            <div className="flex items-baseline justify-between mb-4">
-              <h2 className="text-lg font-semibold text-nspulse-heading">
-                Events
-              </h2>
-              <span className="text-[13px] text-nspulse-muted group-hover:text-nspulse-accent transition-colors">
-                View all →
-              </span>
-            </div>
-            <div className="h-[200px]">
-              <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={chartData}>
-                  <defs>
-                    <linearGradient id="homeGrad" x1="0" y1="0" x2="0" y2="1">
-                      <stop
-                        offset="0%"
-                        stopColor="#E8590C"
-                        stopOpacity={isDark ? 0.3 : 0.15}
-                      />
-                      <stop offset="100%" stopColor="#E8590C" stopOpacity={0} />
-                    </linearGradient>
-                  </defs>
-                  <XAxis
-                    dataKey="name"
-                    tick={axisTick}
-                    axisLine={false}
-                    tickLine={false}
-                  />
-                  <YAxis tick={axisTick} axisLine={false} tickLine={false} />
-                  <Tooltip
-                    contentStyle={{
-                      background: isDark ? "#1A1B1E" : "#FFFFFF",
-                      border: `1px solid ${isDark ? "rgba(255,255,255,0.1)" : "#E5E7EB"}`,
-                      borderRadius: 8,
-                      fontSize: 13,
-                      color: isDark ? "#C1C2C5" : "#374151",
-                    }}
-                  />
-                  <Area
-                    type="monotone"
-                    dataKey="total"
-                    stroke="#E8590C"
-                    strokeWidth={2}
-                    fill="url(#homeGrad)"
-                    dot={false}
-                  />
-                </AreaChart>
-              </ResponsiveContainer>
-            </div>
-          </div>
-        </Link>
+      {eventsChartData.length > 0 && (
+        <AreaChartCard
+          title="Events"
+          linkTo="/events"
+          linkLabel="View all →"
+          data={eventsChartData}
+          gradientId="homeEventsGrad"
+        />
       )}
-
-      {/* Members placeholder */}
-      <Link to="/members" className="block no-anchor-hover-styles group">
-        <div className="bg-nspulse-card-bg border border-nspulse-card-border rounded-xl p-6 transition-shadow hover:shadow-md">
-          <div className="flex items-baseline justify-between">
-            <h2 className="text-lg font-semibold text-nspulse-heading">
-              Members
-            </h2>
-            <span className="text-[13px] text-nspulse-muted group-hover:text-nspulse-accent transition-colors">
-              Coming soon →
-            </span>
-          </div>
-          <p className="text-[14px] text-nspulse-muted mt-2">
-            Member analytics and community insights.
-          </p>
-        </div>
-      </Link>
     </div>
   )
 }
