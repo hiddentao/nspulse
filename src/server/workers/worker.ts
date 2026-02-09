@@ -1,3 +1,4 @@
+import { serverConfig } from "../../shared/config/server"
 import { ONE_MINUTE, ONE_SECOND } from "../../shared/constants"
 import type { WebSocketMessage } from "../../shared/websocket/types"
 import {
@@ -98,8 +99,9 @@ export const runWorker = async (serverApp: ServerApp) => {
 
   logger.info("Starting worker process")
 
-  // Setup default jobs
-  await setupDefaultJobs(serverApp)
+  if (serverConfig.NODE_ENV !== "test") {
+    await setupDefaultJobs(serverApp)
+  }
 
   // Main worker loop
   let cycleCount = 0
