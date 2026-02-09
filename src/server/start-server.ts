@@ -1,3 +1,4 @@
+import { existsSync } from "node:fs"
 import path from "node:path"
 import { cors } from "@elysiajs/cors"
 import { staticPlugin } from "@elysiajs/static"
@@ -165,25 +166,30 @@ export const createApp = async (
   const staticDir =
     serverConfig.STATIC_ASSETS_FOLDER || path.join(import.meta.dir, "static")
 
-  app.use(
-    staticPlugin({
-      assets: staticDir,
-      prefix: "",
-      indexHTML: false,
-      alwaysStatic: true,
-    }),
-  )
+  if (existsSync(staticDir)) {
+    app.use(
+      staticPlugin({
+        assets: staticDir,
+        prefix: "",
+        indexHTML: false,
+        alwaysStatic: true,
+      }),
+    )
+  }
+
+  // Return 404 for missing asset files instead of falling through to SPA
+  app.get("/assets/*", () => new Response("Not found", { status: 404 }))
 
   // Catch-all route to serve index.html for SPA client-side routing
-  app.get("/*", async ({ set }) => {
+  app.get("/*", async () => {
     const indexPath = path.join(staticDir, "index.html")
     const file = Bun.file(indexPath)
     if (await file.exists()) {
-      set.headers["content-type"] = "text/html; charset=utf-8"
-      return file
+      return new Response(file, {
+        headers: { "content-type": "text/html; charset=utf-8" },
+      })
     }
-    set.status = 404
-    return "Not found"
+    return new Response("Not found", { status: 404 })
   })
 
   // Start the server
