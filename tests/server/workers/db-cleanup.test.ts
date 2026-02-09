@@ -17,12 +17,9 @@ import { cleanTestDatabase, setupTestDatabase } from "../../helpers/database"
 import { testLogger } from "../../helpers/logger"
 import type { TestServer } from "../../helpers/server"
 import { startTestServer, waitForServer } from "../../helpers/server"
-import type { TestWorkerContext } from "../../helpers/worker"
-import { startTestWorker, stopTestWorker } from "../../helpers/worker"
 
 describe("Worker Database Cleanup", () => {
   let serverContext: TestServer
-  let workerContext: TestWorkerContext
 
   beforeAll(async () => {
     try {
@@ -34,9 +31,6 @@ describe("Worker Database Cleanup", () => {
       // Start test server
       serverContext = await startTestServer()
       await waitForServer(serverContext.url)
-
-      // Create and start test worker
-      workerContext = await startTestWorker()
 
       testLogger.info("✅ Worker database cleanup test setup complete")
     } catch (error) {
@@ -58,9 +52,6 @@ describe("Worker Database Cleanup", () => {
   afterAll(async () => {
     try {
       testLogger.info("🧹 Cleaning up worker database cleanup tests...")
-
-      // Stop worker
-      await stopTestWorker(workerContext)
 
       // Shutdown server
       await serverContext.shutdown()
