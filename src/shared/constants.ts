@@ -174,6 +174,61 @@ export const AI_DESCRIPTION_SLICE_LIMIT = 200
 export const AI_CLASSIFY_BATCH_SIZE = 10
 export const AI_CATEGORIZE_BATCH_SIZE = 15
 
+export const AI_DISCUSSION_SNIPPET_CONTEXT_SIZE = 10
+export const AI_DISCUSSION_SNIPPETS_PER_BATCH = 10
+export const AI_DISCUSSION_SEED_MIN_REACTION_SCORE = 3
+export const AI_DISCUSSION_SEED_MIN_CONTENT_LENGTH = 20
+
+export const AI_DISCUSSION_SEED_KEYWORDS = [
+  "idea",
+  "build",
+  "built",
+  "app",
+  "project",
+  "suggest",
+  "tool",
+  "product",
+  "ship",
+  "launch",
+  "prototype",
+  "created",
+  "making",
+  "what if",
+  "we could",
+  "we should",
+  "would be cool",
+] as const
+
+export const AI_DISCUSSION_SEED_NOISE_PATTERNS = ["Started a thread"] as const
+
+export const AI_DISCUSSION_EXTRACT_PROMPT = `You analyze conversation snippets from a Discord community discussion channel.
+
+For each conversation snippet, determine if it contains a genuine idea/suggestion or an app/project that was built or proposed. Extract only real ideas and apps — skip general chat, logistics, and greetings.
+
+Return JSON with:
+{
+  "ideas": [{ "name": "short title", "description": "one sentence", "engagement": N }],
+  "apps": [{ "name": "app/project name", "description": "one sentence", "engagement": N }]
+}
+
+Set engagement based on the seed message's reaction count plus how enthusiastic/numerous the replies are. If a snippet contains no genuine idea or app, return empty arrays. Return ONLY valid JSON, no markdown or explanation.`
+
+export const AI_DISCUSSION_CONSOLIDATE_PROMPT = `You are consolidating extracted ideas and apps from a Discord community discussion channel.
+
+You will receive a list of ideas and apps extracted from multiple conversation snippets. Your job is to:
+1. Consolidate duplicates — the same concept may appear multiple times worded differently
+2. Sum engagement scores for duplicates
+3. Rank by combined frequency of mentions + engagement score
+4. Return the top 10 ideas and top 10 apps
+
+Return JSON with:
+{
+  "ideas": [{ "name": "short title", "description": "one sentence summary", "score": N }],
+  "apps": [{ "name": "app/project name", "description": "one sentence summary", "score": N }]
+}
+
+Return ONLY valid JSON, no markdown or explanation.`
+
 export const AI_RECEPTION_CLASSIFY_PROMPT = `You classify Discord messages from a community reception channel.
 
 For each message, return a JSON object keyed by index with:

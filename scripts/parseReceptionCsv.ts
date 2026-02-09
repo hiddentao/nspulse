@@ -6,6 +6,7 @@ import Papa from "papaparse"
 import pc from "picocolors"
 import {
   AI_BATCH_DELAY_MS,
+  AI_CATEGORIZE_BATCH_SIZE,
   AI_CLASSIFY_BATCH_SIZE,
   AI_CONTENT_SLICE_LIMIT,
   AI_MAX_TOKENS,
@@ -15,18 +16,13 @@ import {
   MEMBER_INTEREST_CATEGORIES,
   MEMBER_SKILL_CATEGORIES,
 } from "../src/shared/constants"
+import {
+  type CsvRow,
+  cleanJsonResponse,
+  getDateRange,
+  progressBar,
+} from "./shared/csv-utils"
 import { createScriptRunner, type ScriptOptions } from "./shared/script-runner"
-
-const BAR_WIDTH = 30
-
-interface CsvRow {
-  AuthorID: string
-  Author: string
-  Date: string
-  Content: string
-  Attachments: string
-  Reactions: string
-}
 
 interface ClassifyResult {
   type: "intro" | "skip"
@@ -37,27 +33,6 @@ interface ClassifyResult {
 interface IntroData extends ClassifyResult {
   author: string
   authorId: string
-}
-
-function progressBar(
-  label: string,
-  current: number,
-  total: number,
-  extra = "",
-) {
-  const pct = Math.round((current / total) * 100)
-  const filled = Math.round((current / total) * BAR_WIDTH)
-  const bar =
-    pc.green("█".repeat(filled)) + pc.gray("░".repeat(BAR_WIDTH - filled))
-  const line = `${pc.cyan(label)}  ${bar}  ${pc.bold(pc.white(`${pct}%`))} (${current}/${total})${extra ? `  ${extra}` : ""}`
-  process.stdout.write(`\r${line}`)
-}
-
-function cleanJsonResponse(text: string): string {
-  return text
-    .replace(/^```(?:json)?\s*\n?/, "")
-    .replace(/\n?```\s*$/, "")
-    .trim()
 }
 
 function splitTerms(raw: string): string[] {
@@ -118,6 +93,43 @@ async function categorizeBatch(
   const text =
     response.content[0]?.type === "text" ? response.content[0].text : ""
   return JSON.parse(cleanJsonResponse(text))
+}
+
+async function categorizeAllTerms(
+  client: Anthropic,
+  terms: string[],
+  termType: "skills" | "interests",
+): Promise<Record<string, string>> {
+  const result: Record<string, string> = {}
+
+  for (let i = 0; i < terms.length; i += AI_CATEGORIZE_BATCH_SIZE) {
+    const batch = terms.slice(i, i + AI_CATEGORIZE_BATCH_SIZE)
+    const processed = Math.min(i + AI_CATEGORIZE_BATCH_SIZE, terms.length)
+    progressBar(`Categorizing ${termType}`, processed, terms.length)
+
+    let batchResult: Record<string, string> | null = null
+    try {
+      batchResult = await categorizeBatch(client, batch, termType)
+    } catch {
+      await new Promise((r) => setTimeout(r, AI_RETRY_DELAY_MS))
+      try {
+        batchResult = await categorizeBatch(client, batch, termType)
+      } catch {
+        // Skip this batch on second failure
+      }
+    }
+
+    if (batchResult) {
+      Object.assign(result, batchResult)
+    }
+
+    if (i + AI_CATEGORIZE_BATCH_SIZE < terms.length) {
+      await new Promise((r) => setTimeout(r, AI_BATCH_DELAY_MS))
+    }
+  }
+
+  process.stdout.write("\n")
+  return result
 }
 
 async function crunchHandler(
@@ -220,24 +232,12 @@ async function crunchHandler(
   const skillTerms = [...allSkills]
   const interestTerms = [...allInterests]
 
-  let skillMapping: Record<string, string> = {}
-  let interestMapping: Record<string, string> = {}
-
-  console.log(pc.gray(`  Categorizing ${skillTerms.length} skill terms...`))
-  try {
-    skillMapping = await categorizeBatch(client, skillTerms, "skills")
-  } catch {
-    console.log(pc.yellow("  Failed to categorize skills"))
-  }
-
-  console.log(
-    pc.gray(`  Categorizing ${interestTerms.length} interest terms...`),
+  const skillMapping = await categorizeAllTerms(client, skillTerms, "skills")
+  const interestMapping = await categorizeAllTerms(
+    client,
+    interestTerms,
+    "interests",
   )
-  try {
-    interestMapping = await categorizeBatch(client, interestTerms, "interests")
-  } catch {
-    console.log(pc.yellow("  Failed to categorize interests"))
-  }
 
   console.log(
     pc.green(
@@ -268,12 +268,7 @@ async function crunchHandler(
     }
   }
 
-  const dates = rows
-    .map((r) => r.Date?.split("T")[0])
-    .filter(Boolean)
-    .sort()
-  const firstDate = dates[0] || ""
-  const lastDate = dates[dates.length - 1] || ""
+  const { firstDate, lastDate } = getDateRange(rows)
 
   const output = {
     generatedAt: new Date().toISOString(),

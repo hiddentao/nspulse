@@ -59,6 +59,13 @@ Event data is fetched directly from the [NS calendar](https://luman.com/ns) and 
 2. Run `bun run scripts/parseReceptionCsv.ts`
 3. Check that `./src/shared/stats/reception.json` exists.
 
+### Ideas
+
+1. Use [DiscordChatExporter](https://github.com/Tyrrrz/DiscordChatExporter) to export:
+  * `#discussion` channel -> `./data/discussion.csv`
+2. Run `bun run scripts/parseDiscussionCsv.ts`
+3. Check that `./src/shared/stats/discussion.json` exists.
+
 ## Deployment
 
 The [Docker Build & Push](https://github.com/hiddentao/nspulse/actions/workflows/docker.yml) workflow auto-runs on `main` branch pushes, building the [`nspulse` image](https://github.com/hiddentao/nspulse/pkgs/container/nspulse). This then gets deployed to DigitalOcean.
