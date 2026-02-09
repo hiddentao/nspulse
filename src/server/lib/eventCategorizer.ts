@@ -6,6 +6,8 @@ import {
   AI_EVENT_CATEGORIZE_PROMPT,
   AI_MAX_TOKENS,
   AI_MODEL,
+  AI_REQUEST_TIMEOUT_MS,
+  AI_RETRY_DELAY_MS,
   EVENT_CATEGORIES,
 } from "../../shared/constants"
 
@@ -32,36 +34,43 @@ async function categorizeBatch(
 ): Promise<Map<string, string>> {
   const result = new Map<string, string>()
 
-  try {
-    const response = await client.messages.create({
-      model: AI_MODEL,
-      max_tokens: AI_MAX_TOKENS,
-      system: AI_EVENT_CATEGORIZE_PROMPT,
-      messages: [{ role: "user", content: buildUserPrompt(batch) }],
-    })
+  for (let attempt = 0; attempt < 2; attempt++) {
+    try {
+      const response = await client.messages.create({
+        model: AI_MODEL,
+        max_tokens: AI_MAX_TOKENS,
+        system: AI_EVENT_CATEGORIZE_PROMPT,
+        messages: [{ role: "user", content: buildUserPrompt(batch) }],
+      })
 
-    const text =
-      response.content[0]?.type === "text" ? response.content[0].text : ""
+      const text =
+        response.content[0]?.type === "text" ? response.content[0].text : ""
 
-    const cleaned = text
-      .replace(/^```(?:json)?\s*\n?/, "")
-      .replace(/\n?```\s*$/, "")
-      .trim()
-    const parsed = JSON.parse(cleaned) as Record<string, string>
+      const cleaned = text
+        .replace(/^```(?:json)?\s*\n?/, "")
+        .replace(/\n?```\s*$/, "")
+        .trim()
+      const parsed = JSON.parse(cleaned) as Record<string, string>
 
-    for (const [id, category] of Object.entries(parsed)) {
-      if (
-        typeof category === "string" &&
-        EVENT_CATEGORIES.includes(category as any)
-      ) {
-        result.set(id, category)
+      for (const [id, category] of Object.entries(parsed)) {
+        if (
+          typeof category === "string" &&
+          EVENT_CATEGORIES.includes(category as any)
+        ) {
+          result.set(id, category)
+        }
+      }
+
+      return result
+    } catch (err) {
+      log?.(`Categorization batch failed (attempt ${attempt + 1}/2):`, err)
+      if (attempt === 0) {
+        await new Promise((r) => setTimeout(r, AI_RETRY_DELAY_MS))
       }
     }
-  } catch (err) {
-    log?.("Categorization batch failed:", err)
-    throw err
   }
 
+  log?.("Categorization batch failed after retries, skipping batch")
   return result
 }
 
@@ -70,7 +79,11 @@ export async function categorizeEvents(
   apiKey: string,
   log?: (...args: any[]) => void,
 ): Promise<Map<string, string>> {
-  const client = new Anthropic({ apiKey })
+  const client = new Anthropic({
+    apiKey,
+    timeout: AI_REQUEST_TIMEOUT_MS,
+    maxRetries: 0,
+  })
   const result = new Map<string, string>()
   for (let i = 0; i < events.length; i += AI_CATEGORIZE_BATCH_SIZE) {
     const batch = events.slice(i, i + AI_CATEGORIZE_BATCH_SIZE)

@@ -182,6 +182,7 @@ export const AI_MODEL = "claude-haiku-4-5-20251001"
 export const AI_MAX_TOKENS = 4096
 export const AI_BATCH_DELAY_MS = 500
 export const AI_RETRY_DELAY_MS = 2000
+export const AI_REQUEST_TIMEOUT_MS = 30_000
 export const AI_CONTENT_SLICE_LIMIT = 500
 export const AI_DESCRIPTION_SLICE_LIMIT = 200
 export const AI_CLASSIFY_BATCH_SIZE = 10
