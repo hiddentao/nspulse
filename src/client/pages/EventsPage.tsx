@@ -180,11 +180,6 @@ export function EventsPage() {
           value={peakMonth.count}
           sub={peakMonth.month}
         />
-        <StatCard
-          label="Categories"
-          value={EVENT_CATEGORIES.length}
-          sub="Active categories"
-        />
       </div>
 
       <div className="mb-8">
