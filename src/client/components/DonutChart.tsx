@@ -5,9 +5,18 @@ import { useTheme } from "../contexts/ThemeContext"
 export interface DonutChartProps {
   data: [string, number][]
   colorMap: Record<string, string>
+  size?: number
+  outerRadius?: number
+  innerRadius?: number
 }
 
-export function DonutChart({ data, colorMap }: DonutChartProps) {
+export function DonutChart({
+  data,
+  colorMap,
+  size = 300,
+  outerRadius = 120,
+  innerRadius = 60,
+}: DonutChartProps) {
   const { resolvedTheme } = useTheme()
   const isDark = resolvedTheme === "dark"
 
@@ -23,7 +32,7 @@ export function DonutChart({ data, colorMap }: DonutChartProps) {
 
   return (
     <div className="flex justify-center items-center">
-      <ResponsiveContainer width={300} height={300}>
+      <ResponsiveContainer width={size} height={size}>
         <PieChart>
           <Pie
             data={pieData}
@@ -31,8 +40,8 @@ export function DonutChart({ data, colorMap }: DonutChartProps) {
             nameKey="name"
             cx="50%"
             cy="50%"
-            outerRadius={120}
-            innerRadius={60}
+            outerRadius={outerRadius}
+            innerRadius={innerRadius}
             paddingAngle={2}
             strokeWidth={0}
           >

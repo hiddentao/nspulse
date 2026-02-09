@@ -31,7 +31,7 @@ export function Header() {
           >
             NS Pulse
           </NavLink>
-          <nav className="flex items-center gap-1">
+          <nav className="flex items-center">
             <NavTab to="/events">Events</NavTab>
             <NavTab to="/members">Members</NavTab>
             <NavTab to="/ideas">Ideas</NavTab>
