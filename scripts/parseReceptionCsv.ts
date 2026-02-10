@@ -112,11 +112,7 @@ async function crunchHandler(
       result = await classifyBatch(client, batchItems)
     } catch {
       await new Promise((r) => setTimeout(r, AI_RETRY_DELAY_MS))
-      try {
-        result = await classifyBatch(client, batchItems)
-      } catch {
-        // Skip this batch on second failure
-      }
+      result = await classifyBatch(client, batchItems)
     }
 
     if (result) {

@@ -67,10 +67,28 @@ async function fetchPeriod(
     const url = `${LUMA_API_BASE}/calendar/get-items?${params.toString()}`
     log?.(`Fetching ${period} events: ${url}`)
 
-    const response = await fetch(url)
-    if (!response.ok) {
+    let response: Response | undefined
+    for (let attempt = 0; attempt < 3; attempt++) {
+      try {
+        response = await fetch(url)
+        if (response.ok) break
+        if (response.status < 500) {
+          throw new Error(
+            `Luma API error: ${response.status} ${response.statusText}`,
+          )
+        }
+      } catch (err) {
+        if (attempt === 2) throw err
+        const delay = 500 * 2 ** attempt
+        log?.(
+          `  Fetch attempt ${attempt + 1} failed, retrying in ${delay}ms...`,
+        )
+        await new Promise((resolve) => setTimeout(resolve, delay))
+      }
+    }
+    if (!response?.ok) {
       throw new Error(
-        `Luma API error: ${response.status} ${response.statusText}`,
+        `Luma API error: ${response?.status} ${response?.statusText}`,
       )
     }
 
@@ -84,8 +102,10 @@ async function fetchPeriod(
         continue
       }
       const key = eventKey(event)
-      if (!seen.has(key)) {
+      const titleTimeKey = `${event.title}|${event.startTime.toISOString()}`
+      if (!seen.has(key) && !seen.has(titleTimeKey)) {
         seen.add(key)
+        seen.add(titleTimeKey)
         pageEvents.push(event)
       }
     }

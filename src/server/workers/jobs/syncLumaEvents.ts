@@ -31,6 +31,12 @@ export const run: JobRunner = async (params: JobParams) => {
         (e) => !existingKeys.has(eventKey(e)),
       )
 
+      const safeEvents = batchEvents.filter((e) => {
+        const titleTimeKey = `${e.title}|${e.startTime.toISOString()}`
+        const isUpdate = existingKeys.has(eventKey(e))
+        return isUpdate || !existingKeys.has(titleTimeKey)
+      })
+
       const categoryMap =
         newEvents.length > 0
           ? await categorizeEvents(
@@ -44,7 +50,7 @@ export const run: JobRunner = async (params: JobParams) => {
             )
           : new Map<string, string>()
 
-      const dbRows: NewEvent[] = batchEvents.map((e) => ({
+      const dbRows: NewEvent[] = safeEvents.map((e) => ({
         lumaId: e.lumaId ?? null,
         title: e.title,
         startTime: e.startTime,
@@ -54,11 +60,12 @@ export const run: JobRunner = async (params: JobParams) => {
 
       await insertEvents(db, dbRows)
       totalInserted += newEvents.length
-      for (const e of newEvents) {
+      for (const e of safeEvents) {
         existingKeys.add(eventKey(e))
+        existingKeys.add(`${e.title}|${e.startTime.toISOString()}`)
       }
       log.info(
-        `Batch: ${newEvents.length} new, ${batchEvents.length - newEvents.length} updated (${totalInserted} new total)`,
+        `Batch: ${newEvents.length} new, ${safeEvents.length - newEvents.length} updated, ${batchEvents.length - safeEvents.length} skipped duplicates (${totalInserted} new total)`,
       )
     },
   })

@@ -19,7 +19,11 @@ export async function getExistingEventKeys(
     })
     .from(events)
   return new Set(
-    rows.map((r) => r.lumaId ?? `${r.title}|${r.startTime.toISOString()}`),
+    rows.flatMap((r) => {
+      const keys = [`${r.title}|${r.startTime.toISOString()}`]
+      if (r.lumaId) keys.push(r.lumaId)
+      return keys
+    }),
   )
 }
 
@@ -29,9 +33,19 @@ export async function insertEvents(
 ): Promise<number> {
   if (newEvents.length === 0) return 0
 
+  const dedupMap = new Map<string, NewEvent>()
+  for (const e of newEvents) {
+    const key = `${e.title}|${e.startTime.toISOString()}`
+    const existing = dedupMap.get(key)
+    if (!existing || (e.guestCount ?? 0) > (existing.guestCount ?? 0)) {
+      dedupMap.set(key, e)
+    }
+  }
+  const deduped = Array.from(dedupMap.values())
+
   const result = await db
     .insert(events)
-    .values(newEvents)
+    .values(deduped)
     .onConflictDoUpdate({
       target: events.lumaId,
       set: { guestCount: sql`excluded.guest_count` },

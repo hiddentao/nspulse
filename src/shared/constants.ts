@@ -179,6 +179,7 @@ export const SETTINGS_KEYS = {
 
 // AI processing config shared by scripts and workers
 export const AI_MODEL = "claude-haiku-4-5-20251001"
+export const AI_DISCUSSION_MODEL = "claude-opus-4-6"
 export const AI_RECEPTION_MODEL = "claude-opus-4-6"
 export const AI_MAX_TOKENS = 4096
 export const AI_BATCH_DELAY_MS = 500

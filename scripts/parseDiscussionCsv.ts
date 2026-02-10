@@ -9,6 +9,7 @@ import {
   AI_CONTENT_SLICE_LIMIT,
   AI_DISCUSSION_CONSOLIDATE_PROMPT,
   AI_DISCUSSION_EXTRACT_PROMPT,
+  AI_DISCUSSION_MODEL,
   AI_DISCUSSION_SEED_KEYWORDS,
   AI_DISCUSSION_SEED_MIN_CONTENT_LENGTH,
   AI_DISCUSSION_SEED_MIN_REACTION_SCORE,
@@ -16,7 +17,6 @@ import {
   AI_DISCUSSION_SNIPPET_CONTEXT_SIZE,
   AI_DISCUSSION_SNIPPETS_PER_BATCH,
   AI_MAX_TOKENS,
-  AI_MODEL,
   AI_RETRY_DELAY_MS,
 } from "../src/shared/constants"
 import {
@@ -141,7 +141,7 @@ async function extractBatch(
     .join("\n\n")
 
   const response = await client.messages.create({
-    model: AI_MODEL,
+    model: AI_DISCUSSION_MODEL,
     max_tokens: AI_MAX_TOKENS,
     system: AI_DISCUSSION_EXTRACT_PROMPT,
     messages: [
@@ -165,7 +165,7 @@ async function consolidateResults(
   const payload = JSON.stringify({ ideas: allIdeas, apps: allApps })
 
   const response = await client.messages.create({
-    model: AI_MODEL,
+    model: AI_DISCUSSION_MODEL,
     max_tokens: AI_MAX_TOKENS,
     system: AI_DISCUSSION_CONSOLIDATE_PROMPT,
     messages: [
@@ -244,11 +244,7 @@ async function discussionHandler(
       result = await extractBatch(client, batch, i)
     } catch {
       await new Promise((r) => setTimeout(r, AI_RETRY_DELAY_MS))
-      try {
-        result = await extractBatch(client, batch, i)
-      } catch {
-        // Skip batch on second failure
-      }
+      result = await extractBatch(client, batch, i)
     }
 
     if (result) {
@@ -277,31 +273,7 @@ async function discussionHandler(
       consolidated = await consolidateResults(client, allIdeas, allApps)
     } catch {
       await new Promise((r) => setTimeout(r, AI_RETRY_DELAY_MS))
-      try {
-        consolidated = await consolidateResults(client, allIdeas, allApps)
-      } catch {
-        console.log(
-          pc.yellow("  Failed to consolidate results, using raw extractions"),
-        )
-        consolidated = {
-          ideas: allIdeas
-            .sort((a, b) => b.engagement - a.engagement)
-            .slice(0, 10)
-            .map((i) => ({
-              name: i.name,
-              description: i.description,
-              score: i.engagement,
-            })),
-          apps: allApps
-            .sort((a, b) => b.engagement - a.engagement)
-            .slice(0, 10)
-            .map((a) => ({
-              name: a.name,
-              description: a.description,
-              score: a.engagement,
-            })),
-        }
-      }
+      consolidated = await consolidateResults(client, allIdeas, allApps)
     }
   }
 
