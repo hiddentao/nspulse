@@ -43,16 +43,36 @@ export async function insertEvents(
   }
   const deduped = Array.from(dedupMap.values())
 
-  const result = await db
-    .insert(events)
-    .values(deduped)
-    .onConflictDoUpdate({
-      target: events.lumaId,
-      set: { guestCount: sql`excluded.guest_count` },
-    })
-    .returning({ id: events.id })
+  const withLumaId = deduped.filter((e) => e.lumaId)
+  const withoutLumaId = deduped.filter((e) => !e.lumaId)
 
-  return result.length
+  let count = 0
+
+  if (withLumaId.length > 0) {
+    const result = await db
+      .insert(events)
+      .values(withLumaId)
+      .onConflictDoUpdate({
+        target: events.lumaId,
+        set: { guestCount: sql`excluded.guest_count` },
+      })
+      .returning({ id: events.id })
+    count += result.length
+  }
+
+  if (withoutLumaId.length > 0) {
+    const result = await db
+      .insert(events)
+      .values(withoutLumaId)
+      .onConflictDoUpdate({
+        target: [events.title, events.startTime],
+        set: { guestCount: sql`excluded.guest_count` },
+      })
+      .returning({ id: events.id })
+    count += result.length
+  }
+
+  return count
 }
 
 export async function getAllEvents(db: DatabaseOrTransaction) {
