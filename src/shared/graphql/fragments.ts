@@ -68,5 +68,9 @@ export const EVENT_STATS_FIELDS = gql`
     totalEvents
     lastUpdated
     dailyData
+    totalRegistrations
+    monthlyRegistrationData
+    dailyRegistrationData
+    categoryRegistrationTotals
   }
 `

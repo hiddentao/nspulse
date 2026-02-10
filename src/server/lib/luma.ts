@@ -5,6 +5,7 @@ export interface LumaEvent {
   title: string
   description?: string
   startTime: Date
+  guestCount: number
 }
 
 interface LumaApiEntry {
@@ -18,6 +19,7 @@ interface LumaApiEntry {
     }
   }
   calendar_api_id?: string
+  guest_count?: number
 }
 
 interface LumaApiResponse {
@@ -33,6 +35,7 @@ function parseEntry(entry: LumaApiEntry): LumaEvent {
     title: evt.name,
     description: evt.description || undefined,
     startTime: new Date(evt.start_at),
+    guestCount: entry.guest_count ?? 0,
   }
 }
 

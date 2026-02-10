@@ -246,14 +246,12 @@ Return ONLY valid JSON, no markdown or explanation.`
 
 export const AI_RECEPTION_CLASSIFY_PROMPT = `You classify Discord messages from a community reception channel.
 
-Each message is formatted as: [index] (posted YYYY-MM-DD): <content>
-
 For each message, return a JSON object keyed by index with:
 - "type": "intro" if the person is introducing themselves, otherwise "skip"
-- "skills": comma-separated skills/expertise they mention, or "-"
-- "interests": comma-separated interests/hobbies they mention, or "-"
-- "arrivalMonth": the month they say they're arriving in "MMM YYYY" format (e.g. "Jan 2025"), resolved relative to the message post date, or "-" if not mentioned
+- "skills": array of matching categories from: ${MEMBER_SKILL_CATEGORIES.filter((c) => c !== "Unknown").join(", ")}
+- "interests": array of matching categories from: ${MEMBER_INTEREST_CATEGORIES.filter((c) => c !== "Unknown").join(", ")}
 
+Use ONLY the exact category names listed above. Use empty arrays if none apply.
 Return ONLY valid JSON, no markdown or explanation.`
 
 export const AI_EVENT_CATEGORIZE_PROMPT = `You are an event categorizer for a community dashboard. Categorize each event into exactly one of these categories:

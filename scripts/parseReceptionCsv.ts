@@ -6,11 +6,9 @@ import Papa from "papaparse"
 import pc from "picocolors"
 import {
   AI_BATCH_DELAY_MS,
-  AI_CATEGORIZE_BATCH_SIZE,
   AI_CLASSIFY_BATCH_SIZE,
   AI_CONTENT_SLICE_LIMIT,
   AI_MAX_TOKENS,
-  AI_MODEL,
   AI_RECEPTION_CLASSIFY_PROMPT,
   AI_RECEPTION_MODEL,
   AI_RETRY_DELAY_MS,
@@ -27,9 +25,8 @@ import { createScriptRunner, type ScriptOptions } from "./shared/script-runner"
 
 interface ClassifyResult {
   type: "intro" | "skip"
-  skills: string
-  interests: string
-  arrivalMonth: string
+  skills: string[]
+  interests: string[]
 }
 
 interface IntroData extends ClassifyResult {
@@ -37,21 +34,12 @@ interface IntroData extends ClassifyResult {
   authorId: string
 }
 
-function splitTerms(raw: string): string[] {
-  if (!raw || raw === "-") return []
-  return raw
-    .split(",")
-    .map((t) => t.trim().toLowerCase())
-    .filter(Boolean)
-}
-
 async function classifyBatch(
   client: Anthropic,
-  rows: { index: number; date: string; content: string }[],
+  rows: { index: number; content: string }[],
 ): Promise<Record<number, ClassifyResult>> {
   const lines = rows.map(
-    (r) =>
-      `[${r.index}] (posted ${r.date}): ${r.content.slice(0, AI_CONTENT_SLICE_LIMIT)}`,
+    (r) => `[${r.index}]: ${r.content.slice(0, AI_CONTENT_SLICE_LIMIT)}`,
   )
 
   const response = await client.messages.create({
@@ -69,70 +57,6 @@ async function classifyBatch(
   const text =
     response.content[0]?.type === "text" ? response.content[0].text : ""
   return JSON.parse(cleanJsonResponse(text))
-}
-
-async function categorizeBatch(
-  client: Anthropic,
-  terms: string[],
-  termType: "skills" | "interests",
-): Promise<Record<string, string>> {
-  const categories =
-    termType === "skills" ? MEMBER_SKILL_CATEGORIES : MEMBER_INTEREST_CATEGORIES
-
-  const categoryList = categories.filter((c) => c !== "Unknown").join(", ")
-
-  const response = await client.messages.create({
-    model: AI_MODEL,
-    max_tokens: AI_MAX_TOKENS,
-    system: `You categorize ${termType} terms into predefined categories. You MUST use ONLY these exact category names: ${categoryList}. If a term does not fit any category, map it to "Unknown".\n\nReturn a JSON object mapping each input term (lowercase) to its category string. Return ONLY valid JSON, no markdown or explanation.`,
-    messages: [
-      {
-        role: "user",
-        content: `Categorize these ${termType}:\n\n${terms.join("\n")}`,
-      },
-    ],
-  })
-
-  const text =
-    response.content[0]?.type === "text" ? response.content[0].text : ""
-  return JSON.parse(cleanJsonResponse(text))
-}
-
-async function categorizeAllTerms(
-  client: Anthropic,
-  terms: string[],
-  termType: "skills" | "interests",
-): Promise<Record<string, string>> {
-  const result: Record<string, string> = {}
-
-  for (let i = 0; i < terms.length; i += AI_CATEGORIZE_BATCH_SIZE) {
-    const batch = terms.slice(i, i + AI_CATEGORIZE_BATCH_SIZE)
-    const processed = Math.min(i + AI_CATEGORIZE_BATCH_SIZE, terms.length)
-    progressBar(`Categorizing ${termType}`, processed, terms.length)
-
-    let batchResult: Record<string, string> | null = null
-    try {
-      batchResult = await categorizeBatch(client, batch, termType)
-    } catch {
-      await new Promise((r) => setTimeout(r, AI_RETRY_DELAY_MS))
-      try {
-        batchResult = await categorizeBatch(client, batch, termType)
-      } catch {
-        // Skip this batch on second failure
-      }
-    }
-
-    if (batchResult) {
-      Object.assign(result, batchResult)
-    }
-
-    if (i + AI_CATEGORIZE_BATCH_SIZE < terms.length) {
-      await new Promise((r) => setTimeout(r, AI_BATCH_DELAY_MS))
-    }
-  }
-
-  process.stdout.write("\n")
-  return result
 }
 
 async function crunchHandler(
@@ -172,7 +96,6 @@ async function crunchHandler(
     const batch = rows.slice(i, i + AI_CLASSIFY_BATCH_SIZE)
     const batchItems = batch.map((row, idx) => ({
       index: i + idx,
-      date: row.Date?.split("T")[0] || "unknown",
       content: row.Content || "",
     }))
 
@@ -222,34 +145,8 @@ async function crunchHandler(
     ),
   )
 
-  // Phase 3: Categorize skills & interests
-  console.log(pc.cyan("Phase 3: Categorizing skills & interests with AI..."))
-
-  const allSkills = new Set<string>()
-  const allInterests = new Set<string>()
-  for (const intro of intros) {
-    for (const s of splitTerms(intro.skills)) allSkills.add(s)
-    for (const i of splitTerms(intro.interests)) allInterests.add(i)
-  }
-
-  const skillTerms = [...allSkills]
-  const interestTerms = [...allInterests]
-
-  const skillMapping = await categorizeAllTerms(client, skillTerms, "skills")
-  const interestMapping = await categorizeAllTerms(
-    client,
-    interestTerms,
-    "interests",
-  )
-
-  console.log(
-    pc.green(
-      `  Mapped ${Object.keys(skillMapping).length} skills, ${Object.keys(interestMapping).length} interests\n`,
-    ),
-  )
-
-  // Phase 4: Aggregate & output
-  console.log(pc.cyan("Phase 4: Aggregating results..."))
+  // Phase 3: Aggregate & output
+  console.log(pc.cyan("Phase 3: Aggregating results..."))
 
   const validSkillCategories = new Set<string>(MEMBER_SKILL_CATEGORIES)
   const validInterestCategories = new Set<string>(MEMBER_INTEREST_CATEGORIES)
@@ -258,34 +155,15 @@ async function crunchHandler(
   const interestCounts = new Map<string, number>()
 
   for (const intro of intros) {
-    for (const raw of splitTerms(intro.skills)) {
-      const mapped = skillMapping[raw] || "Unknown"
-      const category = validSkillCategories.has(mapped) ? mapped : "Unknown"
-      skillCounts.set(category, (skillCounts.get(category) || 0) + 1)
+    for (const category of intro.skills) {
+      const valid = validSkillCategories.has(category) ? category : "Unknown"
+      skillCounts.set(valid, (skillCounts.get(valid) || 0) + 1)
     }
-
-    for (const raw of splitTerms(intro.interests)) {
-      const mapped = interestMapping[raw] || "Unknown"
-      const category = validInterestCategories.has(mapped) ? mapped : "Unknown"
-      interestCounts.set(category, (interestCounts.get(category) || 0) + 1)
+    for (const category of intro.interests) {
+      const valid = validInterestCategories.has(category) ? category : "Unknown"
+      interestCounts.set(valid, (interestCounts.get(valid) || 0) + 1)
     }
   }
-
-  const arrivalCounts = new Map<string, number>()
-  for (const intro of intros) {
-    if (intro.arrivalMonth && intro.arrivalMonth !== "-") {
-      arrivalCounts.set(
-        intro.arrivalMonth,
-        (arrivalCounts.get(intro.arrivalMonth) || 0) + 1,
-      )
-    }
-  }
-
-  const sortedArrivals = [...arrivalCounts.entries()].sort((a, b) => {
-    const dateA = new Date(`1 ${a[0]}`)
-    const dateB = new Date(`1 ${b[0]}`)
-    return dateA.getTime() - dateB.getTime()
-  })
 
   const { firstDate, lastDate } = getDateRange(rows)
 
@@ -295,7 +173,6 @@ async function crunchHandler(
     totalIntros: intros.length,
     firstDate,
     lastDate,
-    arrivalsByMonth: Object.fromEntries(sortedArrivals),
     skillCategories: Object.fromEntries(
       [...skillCounts.entries()].sort((a, b) => b[1] - a[1]),
     ),

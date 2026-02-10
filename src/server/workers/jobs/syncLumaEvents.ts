@@ -30,32 +30,35 @@ export const run: JobRunner = async (params: JobParams) => {
       const newEvents = batchEvents.filter(
         (e) => !existingKeys.has(eventKey(e)),
       )
-      if (newEvents.length === 0) return
 
-      const categoryMap = await categorizeEvents(
-        newEvents.map((e) => ({
-          id: eventKey(e),
-          title: e.title,
-          description: e.description,
-        })),
-        serverConfig.ANTHROPIC_API_KEY,
-        (...args: any[]) => log.info(...args),
-      )
+      const categoryMap =
+        newEvents.length > 0
+          ? await categorizeEvents(
+              newEvents.map((e) => ({
+                id: eventKey(e),
+                title: e.title,
+                description: e.description,
+              })),
+              serverConfig.ANTHROPIC_API_KEY,
+              (...args: any[]) => log.info(...args),
+            )
+          : new Map<string, string>()
 
-      const dbRows: NewEvent[] = newEvents.map((e) => ({
+      const dbRows: NewEvent[] = batchEvents.map((e) => ({
         lumaId: e.lumaId ?? null,
         title: e.title,
         startTime: e.startTime,
         category: categoryMap.get(eventKey(e)) ?? "Other",
+        guestCount: e.guestCount,
       }))
 
-      const inserted = await insertEvents(db, dbRows)
-      totalInserted += inserted
+      await insertEvents(db, dbRows)
+      totalInserted += newEvents.length
       for (const e of newEvents) {
         existingKeys.add(eventKey(e))
       }
       log.info(
-        `Batch: inserted ${inserted} events (${totalInserted} total so far)`,
+        `Batch: ${newEvents.length} new, ${batchEvents.length - newEvents.length} updated (${totalInserted} new total)`,
       )
     },
   })

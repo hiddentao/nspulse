@@ -37,6 +37,7 @@ function formatDay(d: string): string {
   return format(new Date(d), "MMM d")
 }
 
+type Metric = "events" | "people"
 type View = "overview" | "categories"
 type TimeGranularity = "month" | "week" | "day"
 
@@ -54,49 +55,62 @@ export function EventsPage() {
   const [selectedCats, setSelectedCats] = useState(
     () => new Set<string>(EVENT_CATEGORIES),
   )
+  const [metric, setMetric] = useState<Metric>("events")
   const [view, setView] = useState<View>("overview")
   const [granularity, setGranularity] = useState<TimeGranularity>("month")
 
   const { eventStats, isLoading } = useData()
 
-  const monthlyData = eventStats?.monthlyData || []
-  const categoryTotals = eventStats?.categoryTotals || []
+  const activeMonthlyData =
+    metric === "events"
+      ? eventStats?.monthlyData || []
+      : eventStats?.monthlyRegistrationData || []
+  const activeCategoryTotals =
+    metric === "events"
+      ? eventStats?.categoryTotals || []
+      : eventStats?.categoryRegistrationTotals || []
+  const activeTotal =
+    metric === "events"
+      ? eventStats?.totalEvents || 0
+      : eventStats?.totalRegistrations || 0
+  const activeDailyData =
+    metric === "events"
+      ? eventStats?.dailyData || []
+      : eventStats?.dailyRegistrationData || []
+
   const totalEvents = eventStats?.totalEvents || 0
-  const dailyData = eventStats?.dailyData || []
 
   const sinceDate = useMemo(() => {
-    const first = monthlyData[0]
+    const first = activeMonthlyData[0]
     if (!first) return ""
     return format(parse(first.month, "yyyy-MM", new Date()), "MMM yyyy")
-  }, [monthlyData])
+  }, [activeMonthlyData])
 
   const avgPerMonth = useMemo(() => {
-    const activeMonths = monthlyData.filter((m: any) => m.total > 5)
-    return activeMonths.length > 0
-      ? Math.round(totalEvents / activeMonths.length)
-      : 0
-  }, [monthlyData, totalEvents])
+    const months = activeMonthlyData.filter((m: any) => m.total > 5)
+    return months.length > 0 ? Math.round(activeTotal / months.length) : 0
+  }, [activeMonthlyData, activeTotal])
 
   const peakMonth = useMemo(() => {
-    if (monthlyData.length === 0) return { month: "—", count: 0 }
-    const m = monthlyData.reduce((a: any, b: any) =>
+    if (activeMonthlyData.length === 0) return { month: "—", count: 0 }
+    const m = activeMonthlyData.reduce((a: any, b: any) =>
       a.total > b.total ? a : b,
     )
     return { month: formatMonth(m.month), count: m.total }
-  }, [monthlyData])
+  }, [activeMonthlyData])
 
   const chartData = useMemo(
     () =>
-      monthlyData
+      activeMonthlyData
         .filter((m: any) => m.total > 5)
         .map((m: any) => ({ ...m, name: formatMonth(m.month) })),
-    [monthlyData],
+    [activeMonthlyData],
   )
 
   const weeklyData = useMemo(() => {
-    if (dailyData.length === 0) return []
+    if (activeDailyData.length === 0) return []
     const weeks = new Map<string, number>()
-    for (const d of dailyData) {
+    for (const d of activeDailyData) {
       const date = new Date(d.date)
       const weekStart = startOfWeek(date, { weekStartsOn: 1 })
       const key = format(weekStart, "yyyy-MM-dd")
@@ -108,11 +122,12 @@ export function EventsPage() {
         name: format(new Date(key), "MMM d"),
         total,
       }))
-  }, [dailyData])
+  }, [activeDailyData])
 
   const dayChartData = useMemo(
-    () => dailyData.map((d) => ({ name: formatDay(d.date), total: d.total })),
-    [dailyData],
+    () =>
+      activeDailyData.map((d) => ({ name: formatDay(d.date), total: d.total })),
+    [activeDailyData],
   )
 
   const timeSeriesData = useMemo(() => {
@@ -153,7 +168,7 @@ export function EventsPage() {
 
   return (
     <div className="px-8 md:px-12 py-8 max-w-[1200px]">
-      <div className="flex items-center gap-2 mb-8">
+      <div className="flex items-center gap-2 mb-4">
         <h1 className="text-3xl font-bold text-nspulse-heading">Events</h1>
         <button
           type="button"
@@ -164,10 +179,18 @@ export function EventsPage() {
         </button>
       </div>
 
+      <div className="mb-8">
+        <ViewToggle
+          options={["events", "people"] as Metric[]}
+          value={metric}
+          onChange={setMetric}
+        />
+      </div>
+
       <div className="flex gap-4 flex-wrap mb-10">
         <StatCard
-          label="Total Events"
-          value={totalEvents.toLocaleString()}
+          label={metric === "events" ? "Total Events" : "Total Registrations"}
+          value={activeTotal.toLocaleString()}
           sub={`Since ${sinceDate}`}
         />
         <StatCard
@@ -177,7 +200,7 @@ export function EventsPage() {
         />
         <StatCard
           label="Peak Month"
-          value={peakMonth.count}
+          value={peakMonth.count.toLocaleString()}
           sub={peakMonth.month}
         />
       </div>
@@ -251,13 +274,13 @@ export function EventsPage() {
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             <CategoryBars
-              data={categoryTotals}
-              total={totalEvents}
+              data={activeCategoryTotals}
+              total={activeTotal}
               colorMap={EVENT_CATEGORY_COLORS}
               iconMap={EVENT_CATEGORY_ICONS}
             />
             <DonutChart
-              data={categoryTotals}
+              data={activeCategoryTotals}
               colorMap={EVENT_CATEGORY_COLORS}
             />
           </div>
@@ -330,8 +353,8 @@ export function EventsPage() {
             <DialogDescription className="text-nspulse-muted">
               {totalEvents.toLocaleString()} events
               {sinceDate ? ` from ${sinceDate}` : ""}
-              {monthlyData.length > 1
-                ? ` to ${formatMonth(monthlyData.at(-1)!.month)}`
+              {activeMonthlyData.length > 1
+                ? ` to ${formatMonth(activeMonthlyData.at(-1)!.month)}`
                 : ""}
               , compiled from the NS calendar at{" "}
               <a

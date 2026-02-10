@@ -1,33 +1,13 @@
 {
-  "generatedAt": "2026-02-09T07:34:58.495Z",
+  "generatedAt": "2026-02-10T03:40:59.081Z",
   "totalMessages": 2705,
-  "totalIntros": 1446,
+  "totalIntros": 758,
   "firstDate": "2024-08-26",
   "lastDate": "2026-02-09",
   "skillCategories": {
-    "Software Engineering": 656,
-    "Crypto & Web3": 640,
-    "Business & Entrepreneurship": 569,
-    "Data & AI": 411,
-    "Finance & Trading": 298,
-    "Marketing & Growth": 277,
-    "Design & Creative": 229,
-    "Operations": 225,
-    "Unknown": 191,
-    "Research & Academia": 179,
-    "Content Creation": 139
+    "Unknown": 2573
   },
   "interestCategories": {
-    "Technology": 806,
-    "Finance & Investing": 543,
-    "Health & Fitness": 253,
-    "Networking & Community": 235,
-    "Arts & Music": 232,
-    "Sports": 230,
-    "Travel & Culture": 208,
-    "Reading & Learning": 205,
-    "Philosophy & Mindfulness": 162,
-    "Unknown": 102,
-    "Social Impact": 83
+    "Unknown": 1705
   }
 }

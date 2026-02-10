@@ -117,6 +117,7 @@ export const events = pgTable(
     title: text("title").notNull(),
     startTime: timestamp("start_time", { withTimezone: true }).notNull(),
     category: text("category").notNull().default("Other"),
+    guestCount: integer("guest_count").notNull().default(0),
     createdAt: timestamp("created_at", { withTimezone: true })
       .defaultNow()
       .notNull(),

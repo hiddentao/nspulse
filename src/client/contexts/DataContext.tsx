@@ -11,6 +11,10 @@ export interface EventStatsData {
   totalEvents: number
   lastUpdated: string | null
   dailyData: { date: string; total: number }[]
+  totalRegistrations: number
+  monthlyRegistrationData: Record<string, any>[]
+  dailyRegistrationData: { date: string; total: number }[]
+  categoryRegistrationTotals: [string, number][]
 }
 
 export interface MemberStatsData {
