@@ -60,6 +60,10 @@ export function sanitizeForApi(str: string): string {
     .replace(CONTROL_CHAR_RE, "")
 }
 
+export function safeSlice(str: string, limit: number): string {
+  return sanitizeForApi(str.slice(0, limit))
+}
+
 export function getDateRange(rows: CsvRow[]): {
   firstDate: string
   lastDate: string
@@ -148,6 +152,12 @@ export async function runBatches<TAccum>(
         process.stdout.write("\n")
         console.error(
           pc.red(`  Failed at item ${i}. Progress saved. Re-run to resume.`),
+        )
+        console.error(
+          `  Batch range: items ${i} to ${i + config.batchSize - 1}`,
+        )
+        console.error(
+          `  Error: ${retryErr instanceof Error ? retryErr.message : String(retryErr)}`,
         )
         throw retryErr
       }

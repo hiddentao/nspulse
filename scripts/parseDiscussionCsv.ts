@@ -26,6 +26,7 @@ import {
   getDateRange,
   parseReactionCount,
   runBatches,
+  safeSlice,
   sanitizeForApi,
 } from "./shared/parserShared"
 import { createScriptRunner, type ScriptOptions } from "./shared/script-runner"
@@ -111,7 +112,7 @@ function buildSnippets(rows: CsvRow[]): Snippet[] {
       if (replyContent.length > 0) {
         replies.push({
           author: sanitizeForApi(reply.Author || "unknown"),
-          content: replyContent.slice(0, AI_CONTENT_SLICE_LIMIT),
+          content: safeSlice(replyContent, AI_CONTENT_SLICE_LIMIT),
         })
       }
     }
@@ -121,7 +122,7 @@ function buildSnippets(rows: CsvRow[]): Snippet[] {
     snippets.push({
       seed: {
         author: sanitizeForApi(row.Author || "unknown"),
-        content: content.slice(0, AI_CONTENT_SLICE_LIMIT),
+        content: safeSlice(content, AI_CONTENT_SLICE_LIMIT),
         reactions: reactionScore,
         ...(attachments && { attachments }),
       },

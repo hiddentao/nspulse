@@ -43,6 +43,8 @@ const setupDefaultJobs = async (serverApp: ServerApp) => {
     type: "syncLumaEvents",
     userId: 0,
     data: {},
+    autoRescheduleOnFailure: true,
+    autoRescheduleOnFailureDelay: ONE_MINUTE,
   })
 
   // Sync Luma events daily at 2 AM UTC

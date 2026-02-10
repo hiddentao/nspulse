@@ -20,6 +20,7 @@ import {
   createAnthropicClient,
   getDateRange,
   runBatches,
+  safeSlice,
   sanitizeForApi,
 } from "./shared/parserShared"
 import { createScriptRunner, type ScriptOptions } from "./shared/script-runner"
@@ -40,7 +41,7 @@ async function classifyBatch(
   rows: { index: number; content: string }[],
 ): Promise<Record<number, ClassifyResult>> {
   const lines = rows.map(
-    (r) => `[${r.index}]: ${r.content.slice(0, AI_CONTENT_SLICE_LIMIT)}`,
+    (r) => `[${r.index}]: ${safeSlice(r.content, AI_CONTENT_SLICE_LIMIT)}`,
   )
 
   const response = await client.messages.create({

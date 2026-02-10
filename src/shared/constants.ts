@@ -171,6 +171,7 @@ export function getCategoryColor(
 
 export const LUMA_CALENDAR_API_ID = "cal-4dWxlBFjW9Cd6ou"
 export const LUMA_API_BASE = "https://api2.luma.com"
+export const LUMA_FETCH_TIMEOUT_MS = 15_000
 
 export const SETTINGS_KEYS = {
   LUMA_LAST_FETCHED_DATE: "luma_last_fetched_date",
@@ -184,8 +185,8 @@ export const AI_MAX_TOKENS = 4096
 export const AI_BATCH_DELAY_MS = 500
 export const AI_RETRY_DELAY_MS = 2000
 export const AI_REQUEST_TIMEOUT_MS = 30_000
-export const AI_CONTENT_SLICE_LIMIT = 500
-export const AI_DESCRIPTION_SLICE_LIMIT = 200
+export const AI_CONTENT_SLICE_LIMIT = 2048
+export const AI_DESCRIPTION_SLICE_LIMIT = 2048
 export const AI_CLASSIFY_BATCH_SIZE = 10
 export const AI_CATEGORIZE_BATCH_SIZE = 15
 

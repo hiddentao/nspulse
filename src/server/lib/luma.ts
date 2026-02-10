@@ -1,4 +1,8 @@
-import { LUMA_API_BASE, LUMA_CALENDAR_API_ID } from "../../shared/constants"
+import {
+  LUMA_API_BASE,
+  LUMA_CALENDAR_API_ID,
+  LUMA_FETCH_TIMEOUT_MS,
+} from "../../shared/constants"
 
 export interface LumaEvent {
   lumaId?: string
@@ -70,7 +74,9 @@ async function fetchPeriod(
     let response: Response | undefined
     for (let attempt = 0; attempt < 3; attempt++) {
       try {
-        response = await fetch(url)
+        response = await fetch(url, {
+          signal: AbortSignal.timeout(LUMA_FETCH_TIMEOUT_MS),
+        })
         if (response.ok) break
         if (response.status < 500) {
           throw new Error(
