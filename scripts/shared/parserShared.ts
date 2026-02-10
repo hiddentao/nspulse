@@ -32,10 +32,19 @@ export function progressBar(
 }
 
 export function cleanJsonResponse(text: string): string {
-  return text
+  const stripped = text
     .replace(/^```(?:json)?\s*\n?/, "")
     .replace(/\n?```\s*$/, "")
     .trim()
+
+  // If the response starts with valid JSON, return as-is
+  if (stripped.startsWith("{") || stripped.startsWith("[")) return stripped
+
+  // Extract the first JSON object or array from prose-wrapped responses
+  const match = stripped.match(/(\{[\s\S]*\}|\[[\s\S]*\])/)
+  if (match) return match[1]!
+
+  return stripped
 }
 
 export function parseReactionCount(reactions: string): number {

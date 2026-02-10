@@ -1,110 +1,130 @@
 {
-  "generatedAt": "2026-02-09T07:55:51.752Z",
+  "generatedAt": "2026-02-10T09:33:21.959Z",
   "totalMessages": 21796,
   "firstDate": "2024-08-28",
   "lastDate": "2026-02-09",
   "ideas": [
     {
-      "name": "1:1 Meetup Program",
-      "description": "Structured one-hour paired meetings between community members to foster genuine connection and two-way discovery.",
-      "score": 51
+      "name": "Startup societies winning sports competitions for diplomatic recognition",
+      "description": "The idea that startup societies could gain diplomatic recognition by winning athletic competitions like Hyrox and eventually Olympic medals.",
+      "url": null,
+      "score": 78
     },
     {
-      "name": "Network Social Club",
-      "description": "A platform where participants can vouch for each other with labels to help members learn who's who and find commonalities in the community.",
-      "score": 52
+      "name": "Prefab/Shipping Housing for Network Society",
+      "description": "Exploring prefab and portable housing solutions like Neo Smart Living and Jupe for the network society movement.",
+      "url": "https://www.neosmartliving.com/",
+      "score": 70
     },
     {
-      "name": "Intramural Sports Community",
-      "description": "Building a community where exercise, healthy food, and play are integrated into daily life with organized leagues for basketball, beach volleyball, and beach soccer.",
+      "name": "Longevity Lecture/Discussion Series at NS",
+      "description": "A proposed series of lectures and discussions on aging science, radical longevity, healthspan, techno-futurism ethics, and DeSci/AI builder tracks.",
+      "url": null,
+      "score": 70
+    },
+    {
+      "name": "Intramural Sports Leagues",
+      "description": "Community sports leagues with commissioners for basketball, beach volleyball, soccer, and pickleball to make exercise a daily habit.",
+      "url": "https://docs.google.com/spreadsheets/d/1YTmVxDi2B3ayQPyhKPmjVMqYGrNJkn5SlzODy1V3qIg/edit?usp=sharing",
+      "score": 68
+    },
+    {
+      "name": "1:1 Meetups / Speed Networking",
+      "description": "Structured 1:1 meetup sessions with random pairing tools for deep networking beyond organic encounters.",
+      "url": "https://pickerwheel.com/tools/random-team-generator/",
       "score": 63
     },
     {
-      "name": "Hard Skills Class",
-      "description": "First-principles class teaching practical skills like woodworking, cooking, and building using hands-on projects.",
+      "name": "Cold plunge leaderboard",
+      "description": "A leaderboard to track and rank the longest cold plunge times among community members.",
+      "url": null,
+      "score": 55
+    },
+    {
+      "name": "Startup City Business Incubator",
+      "description": "An incubator session to brainstorm business ideas that make the startup city more sticky, form teams, find partners, and start business plans.",
+      "url": "https://lu.ma/5673whyy",
+      "score": 54
+    },
+    {
+      "name": "No smoking rule in breakfast/dinner area",
+      "description": "Proposal to ban smoking in the breakfast and dinner areas to improve health and experience for NS members.",
+      "url": null,
+      "score": 47
+    },
+    {
+      "name": "Practical 'Man Skills' Class",
+      "description": "A first-principles class teaching hands-on hard skills like woodworking, fire building, car maintenance, wiring circuits, and field first aid.",
+      "url": null,
       "score": 48
     },
     {
-      "name": "Workshop on Creating New Societies and Communities",
-      "description": "Educational workshop on founding and designing resilient new communities and startup-societies with shared purpose and philosophy.",
-      "score": 27
-    },
-    {
-      "name": "Regen Network State",
-      "description": "A network of resource-resilient and intentional lifestyle community land developments collaborating globally, with first location in Bali, Indonesia.",
-      "score": 29
-    },
-    {
-      "name": "Café Apartment Concept for NS",
-      "description": "Transform a multi-story building into creative spaces with cafés, boutiques, and community areas inspired by Ho Chi Minh City's Café Apartment model.",
-      "score": 23
-    },
-    {
-      "name": "Post-AGI Human Meaning Problem",
-      "description": "Research and discussion initiative addressing how humans can find meaning and purpose in a post-AGI world, exploring decentralized AI governance alternatives.",
-      "score": 34
-    },
-    {
-      "name": "Half Baked Pitching Event",
-      "description": "A training event for improving pitching, storytelling, and idea-sharing skills with no prerequisites required.",
-      "score": 29
-    },
-    {
-      "name": "Longevity Series at NS",
-      "description": "Lecture and discussion series on aging, radical longevity, and the future of health with expert deep dives and open Q&A debates.",
-      "score": 68
+      "name": "Non-Developer Bounty Collaboration with AI Tools",
+      "description": "Non-developers working together to attempt development-based bounties using AI-assisted tools like Cursor, Replit, and Claude, with daily coding quests and weekly dev Q&A.",
+      "url": null,
+      "score": 84
     }
   ],
   "apps": [
     {
-      "name": "NSPals",
-      "description": "Community matching platform that helps NS members connect based on profiles and interests with discovery features.",
-      "score": 74
+      "name": "Insurus",
+      "description": "A home-safety Protect2Earn platform where users earn rewards for completing monthly safety checks with AI photo verification and VeChain blockchain integration.",
+      "url": "https://insurus.xyz/",
+      "score": 76
     },
     {
-      "name": "NS Robotics Club - Clippy",
-      "description": "Robotic arms built by NS Robotics Club with plans for workshop and triple production within the cohort.",
+      "name": "KirakLabs",
+      "description": "An AI dev shop that helps founders turn ideas into working products fast, with a fractional CTO option for ongoing help.",
+      "url": "https://KirakLabs.com",
+      "score": 88
+    },
+    {
+      "name": "NSPals",
+      "description": "A community networking and matchmaking tool for NS members with network/state views, vector similarity matching, and feature request boards.",
+      "url": "https://nspals.com",
+      "score": 142
+    },
+    {
+      "name": "NS Bounties / NS Bounty Board",
+      "description": "A lightweight web app where NS members can post small tasks/jobs as bounties and pay completers in USDC on Base.",
+      "url": "https://nsbounties.replit.app/",
+      "score": 111
+    },
+    {
+      "name": "ROZO",
+      "description": "A crypto payment platform supporting USDC on multiple chains for real-world transactions at NS merchants with cashback, GDP tracking, and identity verification.",
+      "url": "https://dev.rozo.ai/",
+      "score": 88
+    },
+    {
+      "name": "Dash Mart",
+      "description": "A grocery delivery service with under-30-minute delivery, online ordering, and 5% cashback via Rozo payments.",
+      "url": "https://dashmart.lovable.app/",
+      "score": 82
+    },
+    {
+      "name": "Clippy - NS Robotics Club Robot",
+      "description": "The first robot produced by the NS Robotics Club, a 3D-printed robotic arm platform that can run AI models.",
+      "url": null,
       "score": 73
     },
     {
-      "name": "Insurus",
-      "description": "Home-safety Protect2Earn platform with AI photo verification, VeChain blockchain integration, and rewards system for monthly property safety checks.",
-      "score": 74
+      "name": "NS Collab",
+      "description": "An open-source hub for NS members to discover who's building what, find co-founders, post projects, with GitHub-like activity graphs and demoday integration.",
+      "url": "https://nscollab.com",
+      "score": 77
     },
     {
       "name": "Slouch Sniper",
-      "description": "Posture detection app that helps users maintain proper sitting posture with trainable ML model and gamification features.",
-      "score": 47
+      "description": "A posture-monitoring app that uses webcam to detect slouching and alerts users, available on multiple platforms including Setapp.",
+      "url": "https://slouchsniper.com/",
+      "score": 77
     },
     {
-      "name": "Daily Luma Event Auto-posting Bot",
-      "description": "Discord bot that automatically posts daily NS events from Luma with proper timezone handling.",
-      "score": 44
-    },
-    {
-      "name": "NS Bounty Board",
-      "description": "Lightweight task marketplace for NS members to post incentivized jobs and complete bounties using USDC payments.",
-      "score": 40
-    },
-    {
-      "name": "CICADA Finance",
-      "description": "Asset management platform combining RWA and DeFi yield.",
-      "score": 38
-    },
-    {
-      "name": "Humans of NS",
-      "description": "Photography project documenting and sharing stories from Network School community members.",
-      "score": 36
-    },
-    {
-      "name": "Network Graph Visualization Tool",
-      "description": "Application for analyzing and visualizing network connections using Farcaster usernames and social graphs.",
-      "score": 26
-    },
-    {
-      "name": "Blueprint E-Commerce Platform",
-      "description": "Online ordering system for Blueprint health products with warehouse expansion to Malaysia and Singapore.",
-      "score": 26
+      "name": "NS Ride Sharing App",
+      "description": "A ride-sharing app for NS members to coordinate carpooling between Forest City and Singapore with bus guides and cost splitting.",
+      "url": "https://ns-rideshare.replit.app/",
+      "score": 51
     }
   ]
 }
