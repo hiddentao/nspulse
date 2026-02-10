@@ -19,9 +19,20 @@ export function RankedList({ data, colorMap }: RankedListProps) {
             <span className="text-[13px] font-mono text-nspulse-muted w-5 shrink-0">
               {i + 1}.
             </span>
-            <span className="text-[13px] font-medium text-nspulse-text">
-              {item.name}
-            </span>
+            {item.url ? (
+              <a
+                href={item.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-[13px] font-medium hover:underline"
+              >
+                {item.name}
+              </a>
+            ) : (
+              <span className="text-[13px] font-medium text-nspulse-text">
+                {item.name}
+              </span>
+            )}
             <span className="text-[13px] font-mono text-nspulse-muted ml-auto shrink-0">
               {item.score}
             </span>

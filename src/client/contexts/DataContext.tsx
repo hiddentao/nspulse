@@ -28,6 +28,7 @@ export interface MemberStatsData {
 export interface RankedItem {
   name: string
   description: string
+  url?: string
   score: number
 }
 

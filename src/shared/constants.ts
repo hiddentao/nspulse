@@ -178,9 +178,8 @@ export const SETTINGS_KEYS = {
 } as const
 
 // AI processing config shared by scripts and workers
-export const AI_MODEL = "claude-haiku-4-5-20251001"
-export const AI_DISCUSSION_MODEL = "claude-opus-4-6"
-export const AI_RECEPTION_MODEL = "claude-opus-4-6"
+export const AI_MODEL = "claude-opus-4-6"
+export const AI_CHEAPER_MODEL = "claude-haiku-4-5-20251001"
 export const AI_MAX_TOKENS = 4096
 export const AI_BATCH_DELAY_MS = 500
 export const AI_RETRY_DELAY_MS = 2000
@@ -223,10 +222,11 @@ For each conversation snippet, determine if it contains a genuine idea/suggestio
 
 Return JSON with:
 {
-  "ideas": [{ "name": "short title", "description": "one sentence", "engagement": N }],
-  "apps": [{ "name": "app/project name", "description": "one sentence", "engagement": N }]
+  "ideas": [{ "name": "short title", "description": "one sentence", "url": "https://..." or null, "engagement": N }],
+  "apps": [{ "name": "app/project name", "description": "one sentence", "url": "https://..." or null, "engagement": N }]
 }
 
+Include "url" only if a relevant URL is explicitly mentioned in the snippet for that idea/app. Set to null otherwise.
 Set engagement based on the seed message's reaction count plus how enthusiastic/numerous the replies are. If a snippet contains no genuine idea or app, return empty arrays. Return ONLY valid JSON, no markdown or explanation.`
 
 export const AI_DISCUSSION_CONSOLIDATE_PROMPT = `You are consolidating extracted ideas and apps from a Discord community discussion channel.
@@ -239,10 +239,11 @@ You will receive a list of ideas and apps extracted from multiple conversation s
 
 Return JSON with:
 {
-  "ideas": [{ "name": "short title", "description": "one sentence summary", "score": N }],
-  "apps": [{ "name": "app/project name", "description": "one sentence summary", "score": N }]
+  "ideas": [{ "name": "short title", "description": "one sentence summary", "url": "https://..." or null, "score": N }],
+  "apps": [{ "name": "app/project name", "description": "one sentence summary", "url": "https://..." or null, "score": N }]
 }
 
+Preserve the URL from the input when consolidating duplicates. If multiple duplicates have different URLs, keep the first non-null one.
 Return ONLY valid JSON, no markdown or explanation.`
 
 export const AI_RECEPTION_CLASSIFY_PROMPT = `You classify Discord messages from a community reception channel.

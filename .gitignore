@@ -68,3 +68,6 @@ temp/
 CLAUDE.local.md
 v2
 chatfall
+
+# parse scripts
+.parse*.progress

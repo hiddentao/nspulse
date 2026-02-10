@@ -59,12 +59,16 @@ Event data is fetched directly from the [NS calendar](https://luman.com/ns) and 
 2. Run `bun run scripts/parseReceptionCsv.ts`
 3. Check that `./src/shared/stats/reception.json` exists.
 
+_Note: If the script fails halfway you can re-run it and it will resume from where it left off. To force a fresh run delete the `.parseReception.progress` file in the root folder._
+
 ### Ideas
 
 1. Use [DiscordChatExporter](https://github.com/Tyrrrz/DiscordChatExporter) to export:
   * `#discussion` channel -> `./data/discussion.csv`
 2. Run `bun run scripts/parseDiscussionCsv.ts`
 3. Check that `./src/shared/stats/discussion.json` exists.
+
+_Note: If the script fails halfway you can re-run it and it will resume from where it left off. To force a fresh run delete the `.parseDiscussion.progress` file in the root folder._
 
 ## Deployment
 

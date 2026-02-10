@@ -2,10 +2,10 @@ import Anthropic from "@anthropic-ai/sdk"
 import {
   AI_BATCH_DELAY_MS,
   AI_CATEGORIZE_BATCH_SIZE,
+  AI_CHEAPER_MODEL,
   AI_DESCRIPTION_SLICE_LIMIT,
   AI_EVENT_CATEGORIZE_PROMPT,
   AI_MAX_TOKENS,
-  AI_MODEL,
   AI_REQUEST_TIMEOUT_MS,
   AI_RETRY_DELAY_MS,
   EVENT_CATEGORIES,
@@ -37,7 +37,7 @@ async function categorizeBatch(
   for (let attempt = 0; attempt < 2; attempt++) {
     try {
       const response = await client.messages.create({
-        model: AI_MODEL,
+        model: AI_CHEAPER_MODEL,
         max_tokens: AI_MAX_TOKENS,
         system: AI_EVENT_CATEGORIZE_PROMPT,
         messages: [{ role: "user", content: buildUserPrompt(batch) }],

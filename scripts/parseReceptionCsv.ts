@@ -5,22 +5,23 @@ import Anthropic from "@anthropic-ai/sdk"
 import Papa from "papaparse"
 import pc from "picocolors"
 import {
-  AI_BATCH_DELAY_MS,
   AI_CLASSIFY_BATCH_SIZE,
   AI_CONTENT_SLICE_LIMIT,
   AI_MAX_TOKENS,
+  AI_MODEL,
   AI_RECEPTION_CLASSIFY_PROMPT,
-  AI_RECEPTION_MODEL,
-  AI_RETRY_DELAY_MS,
   MEMBER_INTEREST_CATEGORIES,
   MEMBER_SKILL_CATEGORIES,
 } from "../src/shared/constants"
 import {
   type CsvRow,
   cleanJsonResponse,
+  clearProgress,
+  createAnthropicClient,
   getDateRange,
-  progressBar,
-} from "./shared/csv-utils"
+  runBatches,
+  sanitizeForApi,
+} from "./shared/parserShared"
 import { createScriptRunner, type ScriptOptions } from "./shared/script-runner"
 
 interface ClassifyResult {
@@ -43,7 +44,7 @@ async function classifyBatch(
   )
 
   const response = await client.messages.create({
-    model: AI_RECEPTION_MODEL,
+    model: AI_MODEL,
     max_tokens: AI_MAX_TOKENS,
     system: AI_RECEPTION_CLASSIFY_PROMPT,
     messages: [
@@ -63,13 +64,7 @@ async function crunchHandler(
   _options: ScriptOptions,
   config: { rootFolder: string },
 ) {
-  const apiKey = process.env.ANTHROPIC_API_KEY
-  if (!apiKey) {
-    console.error("ANTHROPIC_API_KEY env var is required")
-    process.exit(1)
-  }
-
-  const client = new Anthropic({ apiKey })
+  const client = createAnthropicClient()
   const csvPath = resolve(config.rootFolder, "data", "reception.csv")
   const outputPath = resolve(
     config.rootFolder,
@@ -78,6 +73,7 @@ async function crunchHandler(
     "stats",
     "reception.json",
   )
+  const progressFile = resolve(config.rootFolder, ".parseReception.progress")
 
   // Phase 1: Parse CSV
   console.log(pc.cyan("Phase 1: Parsing CSV..."))
@@ -90,51 +86,42 @@ async function crunchHandler(
 
   // Phase 2: Classify messages
   console.log(pc.cyan("Phase 2: Classifying messages with AI..."))
-  const intros: IntroData[] = []
 
-  for (let i = 0; i < rows.length; i += AI_CLASSIFY_BATCH_SIZE) {
-    const batch = rows.slice(i, i + AI_CLASSIFY_BATCH_SIZE)
-    const batchItems = batch.map((row, idx) => ({
-      index: i + idx,
-      content: row.Content || "",
-    }))
+  const intros = await runBatches<IntroData[]>({
+    label: "Classifying messages",
+    batchSize: AI_CLASSIFY_BATCH_SIZE,
+    total: rows.length,
+    progressFile,
+    initial: [],
+    extra: (accum) => `Intros: ${accum.length}`,
+    processBatch: async (startIndex, accum) => {
+      const batch = rows.slice(startIndex, startIndex + AI_CLASSIFY_BATCH_SIZE)
+      const batchItems = batch.map((row, idx) => ({
+        index: startIndex + idx,
+        content: sanitizeForApi(row.Content || ""),
+      }))
 
-    const messagesProcessed = Math.min(i + AI_CLASSIFY_BATCH_SIZE, rows.length)
-    progressBar(
-      "Classifying messages",
-      messagesProcessed,
-      rows.length,
-      `Intros: ${intros.length}`,
-    )
+      const result = await classifyBatch(client, batchItems)
+      const newIntros: IntroData[] = []
 
-    let result: Record<number, ClassifyResult> | null = null
-    try {
-      result = await classifyBatch(client, batchItems)
-    } catch {
-      await new Promise((r) => setTimeout(r, AI_RETRY_DELAY_MS))
-      result = await classifyBatch(client, batchItems)
-    }
-
-    if (result) {
-      for (const [idxStr, classification] of Object.entries(result)) {
-        if (classification.type === "intro") {
-          const rowIdx = Number(idxStr)
-          const row = rows[rowIdx] || batch[rowIdx - i]
-          intros.push({
-            ...classification,
-            author: row?.Author || "unknown",
-            authorId: row?.AuthorID || "unknown",
-          })
+      if (result) {
+        for (const [idxStr, classification] of Object.entries(result)) {
+          if (classification.type === "intro") {
+            const rowIdx = Number(idxStr)
+            const row = rows[rowIdx] || batch[rowIdx - startIndex]
+            newIntros.push({
+              ...classification,
+              author: row?.Author || "unknown",
+              authorId: row?.AuthorID || "unknown",
+            })
+          }
         }
       }
-    }
 
-    if (i + AI_CLASSIFY_BATCH_SIZE < rows.length) {
-      await new Promise((r) => setTimeout(r, AI_BATCH_DELAY_MS))
-    }
-  }
+      return [...accum, ...newIntros]
+    },
+  })
 
-  process.stdout.write("\n")
   console.log(
     pc.green(
       `  Found ${intros.length} intros out of ${rows.length} messages\n`,
@@ -178,6 +165,7 @@ async function crunchHandler(
   }
 
   await Bun.write(outputPath, JSON.stringify(output, null, 2))
+  await clearProgress(progressFile)
   console.log(pc.green(`  Written to ${outputPath}`))
   console.log(
     pc.green(

@@ -5,11 +5,9 @@ import Anthropic from "@anthropic-ai/sdk"
 import Papa from "papaparse"
 import pc from "picocolors"
 import {
-  AI_BATCH_DELAY_MS,
   AI_CONTENT_SLICE_LIMIT,
   AI_DISCUSSION_CONSOLIDATE_PROMPT,
   AI_DISCUSSION_EXTRACT_PROMPT,
-  AI_DISCUSSION_MODEL,
   AI_DISCUSSION_SEED_KEYWORDS,
   AI_DISCUSSION_SEED_MIN_CONTENT_LENGTH,
   AI_DISCUSSION_SEED_MIN_REACTION_SCORE,
@@ -17,25 +15,35 @@ import {
   AI_DISCUSSION_SNIPPET_CONTEXT_SIZE,
   AI_DISCUSSION_SNIPPETS_PER_BATCH,
   AI_MAX_TOKENS,
+  AI_MODEL,
   AI_RETRY_DELAY_MS,
 } from "../src/shared/constants"
 import {
   type CsvRow,
   cleanJsonResponse,
+  clearProgress,
+  createAnthropicClient,
   getDateRange,
   parseReactionCount,
-  progressBar,
-} from "./shared/csv-utils"
+  runBatches,
+  sanitizeForApi,
+} from "./shared/parserShared"
 import { createScriptRunner, type ScriptOptions } from "./shared/script-runner"
 
 interface Snippet {
-  seed: { author: string; content: string; reactions: number }
+  seed: {
+    author: string
+    content: string
+    reactions: number
+    attachments?: string
+  }
   replies: { author: string; content: string }[]
 }
 
 interface ExtractedItem {
   name: string
   description: string
+  url?: string
   engagement: number
 }
 
@@ -47,6 +55,7 @@ interface ExtractResult {
 interface ScoredItem {
   name: string
   description: string
+  url?: string
   score: number
 }
 
@@ -82,7 +91,7 @@ function buildSnippets(rows: CsvRow[]): Snippet[] {
   for (let i = 0; i < rows.length; i++) {
     if (claimed.has(i)) continue
     const row = rows[i]!
-    const content = row.Content || ""
+    const content = sanitizeForApi(row.Content || "")
     const reactionScore = parseReactionCount(row.Reactions)
 
     if (!isSeedMessage(content, reactionScore)) continue
@@ -98,20 +107,23 @@ function buildSnippets(rows: CsvRow[]): Snippet[] {
       if (claimed.has(j)) continue
       claimed.add(j)
       const reply = rows[j]!
-      const replyContent = reply.Content || ""
+      const replyContent = sanitizeForApi(reply.Content || "")
       if (replyContent.length > 0) {
         replies.push({
-          author: reply.Author || "unknown",
+          author: sanitizeForApi(reply.Author || "unknown"),
           content: replyContent.slice(0, AI_CONTENT_SLICE_LIMIT),
         })
       }
     }
 
+    const attachments = sanitizeForApi(row.Attachments || "")
+
     snippets.push({
       seed: {
-        author: row.Author || "unknown",
+        author: sanitizeForApi(row.Author || "unknown"),
         content: content.slice(0, AI_CONTENT_SLICE_LIMIT),
         reactions: reactionScore,
+        ...(attachments && { attachments }),
       },
       replies,
     })
@@ -121,10 +133,11 @@ function buildSnippets(rows: CsvRow[]): Snippet[] {
 }
 
 function formatSnippet(snippet: Snippet, index: number): string {
-  const lines = [
-    `--- Snippet ${index + 1} ---`,
-    `[SEED] (reactions: ${snippet.seed.reactions}) ${snippet.seed.author}: "${snippet.seed.content}"`,
-  ]
+  let seedLine = `[SEED] (reactions: ${snippet.seed.reactions}) ${snippet.seed.author}: "${snippet.seed.content}"`
+  if (snippet.seed.attachments) {
+    seedLine += ` [Attachments: ${snippet.seed.attachments}]`
+  }
+  const lines = [`--- Snippet ${index + 1} ---`, seedLine]
   for (const reply of snippet.replies) {
     lines.push(`[REPLY] ${reply.author}: "${reply.content}"`)
   }
@@ -141,7 +154,7 @@ async function extractBatch(
     .join("\n\n")
 
   const response = await client.messages.create({
-    model: AI_DISCUSSION_MODEL,
+    model: AI_MODEL,
     max_tokens: AI_MAX_TOKENS,
     system: AI_DISCUSSION_EXTRACT_PROMPT,
     messages: [
@@ -165,7 +178,7 @@ async function consolidateResults(
   const payload = JSON.stringify({ ideas: allIdeas, apps: allApps })
 
   const response = await client.messages.create({
-    model: AI_DISCUSSION_MODEL,
+    model: AI_MODEL,
     max_tokens: AI_MAX_TOKENS,
     system: AI_DISCUSSION_CONSOLIDATE_PROMPT,
     messages: [
@@ -185,13 +198,7 @@ async function discussionHandler(
   _options: ScriptOptions,
   config: { rootFolder: string },
 ) {
-  const apiKey = process.env.ANTHROPIC_API_KEY
-  if (!apiKey) {
-    console.error("ANTHROPIC_API_KEY env var is required")
-    process.exit(1)
-  }
-
-  const client = new Anthropic({ apiKey })
+  const client = createAnthropicClient()
   const csvPath = resolve(config.rootFolder, "data", "discussion.csv")
   const outputPath = resolve(
     config.rootFolder,
@@ -200,6 +207,7 @@ async function discussionHandler(
     "stats",
     "discussion.json",
   )
+  const progressFile = resolve(config.rootFolder, ".parseDiscussion.progress")
 
   // Phase 1: Parse CSV
   console.log(pc.cyan("Phase 1: Parsing CSV..."))
@@ -219,45 +227,31 @@ async function discussionHandler(
 
   // Phase 3: Map — AI extraction in batches
   console.log(pc.cyan("Phase 3: Extracting ideas & apps with AI..."))
-  const allIdeas: ExtractedItem[] = []
-  const allApps: ExtractedItem[] = []
+
+  const { ideas: allIdeas, apps: allApps } = await runBatches<ExtractResult>({
+    label: "Extracting",
+    batchSize: AI_DISCUSSION_SNIPPETS_PER_BATCH,
+    total: snippets.length,
+    progressFile,
+    initial: { ideas: [], apps: [] },
+    extra: (accum) =>
+      `Ideas: ${accum.ideas.length}  Apps: ${accum.apps.length}`,
+    processBatch: async (startIndex, accum) => {
+      const batch = snippets.slice(
+        startIndex,
+        startIndex + AI_DISCUSSION_SNIPPETS_PER_BATCH,
+      )
+      const result = await extractBatch(client, batch, startIndex)
+      return {
+        ideas: [...accum.ideas, ...(result.ideas || [])],
+        apps: [...accum.apps, ...(result.apps || [])],
+      }
+    },
+  })
+
   const totalBatches = Math.ceil(
     snippets.length / AI_DISCUSSION_SNIPPETS_PER_BATCH,
   )
-
-  for (let i = 0; i < snippets.length; i += AI_DISCUSSION_SNIPPETS_PER_BATCH) {
-    const batch = snippets.slice(i, i + AI_DISCUSSION_SNIPPETS_PER_BATCH)
-    const snippetsProcessed = Math.min(
-      i + AI_DISCUSSION_SNIPPETS_PER_BATCH,
-      snippets.length,
-    )
-
-    progressBar(
-      "Extracting",
-      snippetsProcessed,
-      snippets.length,
-      `Ideas: ${allIdeas.length}  Apps: ${allApps.length}`,
-    )
-
-    let result: ExtractResult | null = null
-    try {
-      result = await extractBatch(client, batch, i)
-    } catch {
-      await new Promise((r) => setTimeout(r, AI_RETRY_DELAY_MS))
-      result = await extractBatch(client, batch, i)
-    }
-
-    if (result) {
-      if (result.ideas) allIdeas.push(...result.ideas)
-      if (result.apps) allApps.push(...result.apps)
-    }
-
-    if (i + AI_DISCUSSION_SNIPPETS_PER_BATCH < snippets.length) {
-      await new Promise((r) => setTimeout(r, AI_BATCH_DELAY_MS))
-    }
-  }
-
-  process.stdout.write("\n")
   console.log(
     pc.green(
       `  Extracted ${allIdeas.length} ideas, ${allApps.length} apps across ${totalBatches} batches\n`,
@@ -298,6 +292,7 @@ async function discussionHandler(
   }
 
   await Bun.write(outputPath, JSON.stringify(output, null, 2))
+  await clearProgress(progressFile)
   console.log(pc.green(`  Written to ${outputPath}\n`))
   console.log(pc.cyan("Done!"))
 }
