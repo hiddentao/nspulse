@@ -12,6 +12,7 @@ import {
   AI_MAX_TOKENS,
   AI_MODEL,
   AI_RECEPTION_CLASSIFY_PROMPT,
+  AI_RECEPTION_MODEL,
   AI_RETRY_DELAY_MS,
   MEMBER_INTEREST_CATEGORIES,
   MEMBER_SKILL_CATEGORIES,
@@ -28,6 +29,7 @@ interface ClassifyResult {
   type: "intro" | "skip"
   skills: string
   interests: string
+  arrivalMonth: string
 }
 
 interface IntroData extends ClassifyResult {
@@ -48,11 +50,12 @@ async function classifyBatch(
   rows: { index: number; date: string; content: string }[],
 ): Promise<Record<number, ClassifyResult>> {
   const lines = rows.map(
-    (r) => `[${r.index}]: ${r.content.slice(0, AI_CONTENT_SLICE_LIMIT)}`,
+    (r) =>
+      `[${r.index}] (posted ${r.date}): ${r.content.slice(0, AI_CONTENT_SLICE_LIMIT)}`,
   )
 
   const response = await client.messages.create({
-    model: AI_MODEL,
+    model: AI_RECEPTION_MODEL,
     max_tokens: AI_MAX_TOKENS,
     system: AI_RECEPTION_CLASSIFY_PROMPT,
     messages: [
@@ -268,6 +271,22 @@ async function crunchHandler(
     }
   }
 
+  const arrivalCounts = new Map<string, number>()
+  for (const intro of intros) {
+    if (intro.arrivalMonth && intro.arrivalMonth !== "-") {
+      arrivalCounts.set(
+        intro.arrivalMonth,
+        (arrivalCounts.get(intro.arrivalMonth) || 0) + 1,
+      )
+    }
+  }
+
+  const sortedArrivals = [...arrivalCounts.entries()].sort((a, b) => {
+    const dateA = new Date(`1 ${a[0]}`)
+    const dateB = new Date(`1 ${b[0]}`)
+    return dateA.getTime() - dateB.getTime()
+  })
+
   const { firstDate, lastDate } = getDateRange(rows)
 
   const output = {
@@ -276,6 +295,7 @@ async function crunchHandler(
     totalIntros: intros.length,
     firstDate,
     lastDate,
+    arrivalsByMonth: Object.fromEntries(sortedArrivals),
     skillCategories: Object.fromEntries(
       [...skillCounts.entries()].sort((a, b) => b[1] - a[1]),
     ),

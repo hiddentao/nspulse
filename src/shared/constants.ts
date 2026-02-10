@@ -179,6 +179,7 @@ export const SETTINGS_KEYS = {
 
 // AI processing config shared by scripts and workers
 export const AI_MODEL = "claude-haiku-4-5-20251001"
+export const AI_RECEPTION_MODEL = "claude-opus-4-6"
 export const AI_MAX_TOKENS = 4096
 export const AI_BATCH_DELAY_MS = 500
 export const AI_RETRY_DELAY_MS = 2000
@@ -245,10 +246,13 @@ Return ONLY valid JSON, no markdown or explanation.`
 
 export const AI_RECEPTION_CLASSIFY_PROMPT = `You classify Discord messages from a community reception channel.
 
+Each message is formatted as: [index] (posted YYYY-MM-DD): <content>
+
 For each message, return a JSON object keyed by index with:
 - "type": "intro" if the person is introducing themselves, otherwise "skip"
 - "skills": comma-separated skills/expertise they mention, or "-"
 - "interests": comma-separated interests/hobbies they mention, or "-"
+- "arrivalMonth": the month they say they're arriving in "MMM YYYY" format (e.g. "Jan 2025"), resolved relative to the message post date, or "-" if not mentioned
 
 Return ONLY valid JSON, no markdown or explanation.`
 
