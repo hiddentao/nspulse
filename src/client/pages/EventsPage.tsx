@@ -37,7 +37,7 @@ function formatDay(d: string): string {
   return format(new Date(d), "MMM d")
 }
 
-type Metric = "events" | "people"
+type Metric = "events" | "registrations"
 type View = "overview" | "categories"
 type TimeGranularity = "month" | "week" | "day"
 
@@ -181,7 +181,7 @@ export function EventsPage() {
 
       <div className="mb-8">
         <ViewToggle
-          options={["events", "people"] as Metric[]}
+          options={["events", "registrations"] as Metric[]}
           value={metric}
           onChange={setMetric}
         />
