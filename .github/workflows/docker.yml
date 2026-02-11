@@ -42,6 +42,7 @@ jobs:
         run: bun run build
         env:
           NODE_ENV: production
+          SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3

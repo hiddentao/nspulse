@@ -17,7 +17,10 @@ if (clientConfig.SENTRY_DSN) {
     tracesSampleRate: clientConfig.SENTRY_TRACES_SAMPLE_RATE,
     integrations: [
       Sentry.browserTracingIntegration(),
-      Sentry.replayIntegration(),
+      Sentry.replayIntegration({
+        maskAllText: false,
+        blockAllMedia: false,
+      }),
     ],
     tracePropagationTargets,
     replaysSessionSampleRate: clientConfig.SENTRY_REPLAY_SESSION_SAMPLE_RATE,
