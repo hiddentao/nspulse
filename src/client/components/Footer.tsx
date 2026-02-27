@@ -24,6 +24,9 @@ export function Footer() {
           </a>
         </span>
       </div>
+      <div className="mt-2 text-[11px] font-mono text-nspulse-subtle">
+        This is an unofficial dashboard and is not affiliated with NS
+      </div>
     </footer>
   )
 }
