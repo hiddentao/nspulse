@@ -81,7 +81,9 @@ jobs:
           cache-to: type=gha,mode=max
 
       - name: Deploy to DigitalOcean App Platform
-        uses: digitalocean/app_action/deploy@v2
-        with:
-          token: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
-          app_name: nspulse-production
+        run: |
+          curl -sf -X POST \
+            -H "Authorization: Bearer ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}" \
+            -H "Content-Type: application/json" \
+            -d '{"force_build": true}' \
+            "https://api.digitalocean.com/v2/apps/cc1ab1ea-ea00-4436-a201-a3207c555a35/deployments"
